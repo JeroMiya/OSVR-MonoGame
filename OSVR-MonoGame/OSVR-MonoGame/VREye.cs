@@ -23,10 +23,18 @@ namespace OSVR
         public class VREye
         {
             #region Public Variables
-            public Eye eye;
+			public Eye Eye { get; set; }
 
-			//[HideInInspector]
-			//public Transform cachedTransform;
+			// JEB: I should probably just rename this to Transform
+			public Matrix CachedTransform { get; set; }
+
+			// JEB: Do we need this?
+			public bool CameraEnabled { get; set; }
+			
+			// JEB: This should probably be renamed ViewPort, but we'd have to pass in
+			// the graphics device dimensions somehow to calculate them.
+			public Vector4 CameraRectangle { get; set; }
+
             #endregion
 
             #region Init
@@ -36,35 +44,22 @@ namespace OSVR
             }
             #endregion
 
-            #region Public Methods
-			//public void MatchCamera(Camera sourceCamera)
-			//{
-			//	camera.nearClipPlane = sourceCamera.nearClipPlane;
-			//	camera.farClipPlane = sourceCamera.farClipPlane;
-			//	camera.backgroundColor = sourceCamera.backgroundColor;
-			//	camera.clearFlags = sourceCamera.clearFlags;
-			//	camera.cullingMask = sourceCamera.cullingMask;
-			//}
-            #endregion
-
             #region Private Methods
             void Init()
             {
-				////cache:
-				//cachedTransform = transform;
+				// JEB: TODO - reimplement this to do viewport calculations. MonoGame
+				// has no concept of a Camera other than utilities to create matrices.
 
-				//if (camera == null) gameObject.AddComponent<Camera>();
-
-				////camera setups:
-				//switch (eye)
-				//{
-				//	case Eye.left:
-				//		camera.rect = new Rect(0, 0, .5f, 1);
-				//		break;
-				//	case Eye.right:
-				//		camera.rect = new Rect(.5f, 0, .5f, 1);
-				//		break;
-				//}
+				//camera setups:
+				switch (Eye)
+				{
+					case Eye.Left:
+						CameraRectangle = new Vector4(0, 0, .5f, 1);
+						break;
+					case Eye.Right:
+						CameraRectangle = new Vector4(.5f, 0, .5f, 1);
+						break;
+				}
             }
             #endregion
         }

@@ -19,33 +19,28 @@ namespace OSVR
     namespace MonoGame
     {
 
-        public enum ViewMode { stereo, mono };
+        public enum ViewMode { Stereo, Mono };
 
         //[RequireComponent(typeof(Camera))]
         public class VRHead
         {
             #region Public Variables
-            public ViewMode viewMode;
+			public ViewMode ViewMode { get; set; }
 
             //[Range(0, 1)]
-            public float stereoAmount;
+			public float StereoAmount { get; set; }
 
-            public float maxStereo = .03f;
+            private float maxStereo = .03f;
+			public float MaxStereo { get { return maxStereo; } set { maxStereo = value; } }
+
+			public bool CameraEnabled { get; set; }
             #endregion
 
             #region Private Variables
-            VREye _leftEye;
-            VREye _rightEye;
+			VREye _leftEye = new VREye() { Eye = Eye.Left };
+			VREye _rightEye = new VREye() { Eye = Eye.Right };
             float _previousStereoAmount;
             ViewMode _previousViewMode;
-            #endregion
-
-            #region Init
-            void Start()
-            {
-                Init();
-                CatalogEyes();
-            }
             #endregion
 
             #region Loop
@@ -60,68 +55,48 @@ namespace OSVR
             #endregion
 
             #region Private Methods
+			bool _firstUpdate = true;
             void UpdateViewMode()
             {
-				//if (Time.realtimeSinceStartup < 100 || _previousViewMode != viewMode)
-				//{
-				//	switch (viewMode)
-				//	{
-				//		case ViewMode.mono:
-				//			camera.enabled = true;
-				//			_leftEye.camera.enabled = false;
-				//			_rightEye.camera.enabled = false;
-				//			break;
+				if (_firstUpdate || _previousViewMode != ViewMode)
+				{
+					switch (ViewMode)
+					{
+						case ViewMode.Mono:
+							CameraEnabled = true;
+							_leftEye.CameraEnabled = false;
+							_rightEye.CameraEnabled = false;
+							break;
 
-				//		case ViewMode.stereo:
-				//			camera.enabled = false;
-				//			_leftEye.camera.enabled = true;
-				//			_rightEye.camera.enabled = true;
-				//			break;
-				//	}
-				//}
+						case ViewMode.Stereo:
+							CameraEnabled = false;
+							_leftEye.CameraEnabled = true;
+							_rightEye.CameraEnabled = true;
+							break;
+					}
+				}
 
-                _previousViewMode = viewMode;
+                _previousViewMode = ViewMode;
             }
 
             void UpdateStereoAmount()
             {
-				//if (stereoAmount != _previousStereoAmount)
-				//{
-				//	stereoAmount = Mathf.Clamp(stereoAmount, 0, 1);
-				//	_rightEye.cachedTransform.localPosition = Vector3.Right * (maxStereo * stereoAmount);
-				//	_leftEye.cachedTransform.localPosition = Vector3.Left * (maxStereo * stereoAmount);
-				//	_previousStereoAmount = stereoAmount;
-				//}
-            }
+				if (StereoAmount != _previousStereoAmount)
+				{
+					StereoAmount = System.Math.Min(StereoAmount, 0);
+					StereoAmount = System.Math.Max(StereoAmount, 1);
 
-            void CatalogEyes()
-            {
-				//foreach (VREye currentEye in GetComponentsInChildren<VREye>())
-				//{
-				//	//match:
-				//	currentEye.MatchCamera(camera);
+					var rightTransform = _rightEye.CachedTransform;
+					var leftTransform = _leftEye.CachedTransform;
 
-				//	//catalog:
-				//	switch (currentEye.eye)
-				//	{
-				//		case Eye.left:
-				//			_leftEye = currentEye;
-				//			break;
+					rightTransform.Translation = Vector3.Right * (maxStereo * StereoAmount);
+					leftTransform.Translation = Vector3.Left * (maxStereo * StereoAmount);
 
-				//		case Eye.right:
-				//			_rightEye = currentEye;
-				//			break;
-				//	}
-				//}
-            }
+					_leftEye.CachedTransform = leftTransform;
+					_rightEye.CachedTransform = rightTransform;
 
-            void Init()
-            {
-				////VR should never timeout the screen:
-				//Screen.sleepTimeout = SleepTimeout.NeverSleep;
-
-				////60 FPS whenever possible:
-				//Application.targetFrameRate = 60;
+					_previousStereoAmount = StereoAmount;
+				}
             }
             #endregion
         }

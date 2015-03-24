@@ -56,8 +56,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Managed-OSVR\ClientKit45\ClientKit45.csproj">
-      <Project>{7ff6c095-cf52-425b-b3d7-e0694637bda9}</Project>
+    <ProjectReference Include="..\..\..\OSVR-Unity\Managed-OSVR\ClientKit45\ClientKit45.csproj">
+      <Project>{690fabb1-5188-48d5-8f65-ae4ddacf9953}</Project>
       <Name>ClientKit45</Name>
     </ProjectReference>
   </ItemGroup>

@@ -12,6 +12,8 @@
 /// </summary>
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections;
 
 namespace OSVR
@@ -22,46 +24,52 @@ namespace OSVR
 
         public class VREye
         {
+            private readonly GraphicsDevice graphicsDevice;
+
             #region Public Variables
-			public Eye Eye { get; set; }
+            public Eye Eye { get; private set; }
 
-			// JEB: I should probably just rename this to Transform
-			public Matrix CachedTransform { get; set; }
+            public Matrix Transform { get; set; }
 
-			// JEB: Do we need this?
-			public bool CameraEnabled { get; set; }
-			
-			// JEB: This should probably be renamed ViewPort, but we'd have to pass in
-			// the graphics device dimensions somehow to calculate them.
-			public Vector4 CameraRectangle { get; set; }
+            // JEB: Do we need this?
+            public bool CameraEnabled { get; set; }
 
-            #endregion
-
-            #region Init
-            void Awake()
-            {
-                Init();
+            public Viewport Viewport {
+                get
+                {
+                    switch(Eye)
+                    {
+                        case MonoGame.Eye.Left:
+                            return new Viewport
+                            {
+                                MinDepth = 0,
+                                MaxDepth = 1,
+                                X = 0,
+                                Y = 0,
+                                Width = graphicsDevice.Viewport.Width / 2,
+                                Height = graphicsDevice.Viewport.Height,
+                            };
+                        case MonoGame.Eye.Right:
+                            return new Viewport
+                            {
+                                MinDepth = 0,
+                                MaxDepth = 1,
+                                X = graphicsDevice.Viewport.Width / 2,
+                                Y = 0,
+                                Width = graphicsDevice.Viewport.Width / 2,
+                                Height = graphicsDevice.Viewport.Height,
+                            };
+                    }
+                    throw new InvalidOperationException("Unexpected eye type.");
+                }
             }
             #endregion
 
-            #region Private Methods
-            void Init()
+            public VREye(GraphicsDevice graphicsDevice, Eye eye)
             {
-				// JEB: TODO - reimplement this to do viewport calculations. MonoGame
-				// has no concept of a Camera other than utilities to create matrices.
-
-				//camera setups:
-				switch (Eye)
-				{
-					case Eye.Left:
-						CameraRectangle = new Vector4(0, 0, .5f, 1);
-						break;
-					case Eye.Right:
-						CameraRectangle = new Vector4(.5f, 0, .5f, 1);
-						break;
-				}
+                this.graphicsDevice = graphicsDevice;
+                this.Eye = eye;
             }
-            #endregion
         }
     }
 }

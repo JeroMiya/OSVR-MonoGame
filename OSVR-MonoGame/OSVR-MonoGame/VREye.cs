@@ -26,14 +26,45 @@ namespace OSVR
         {
             private readonly GraphicsDevice graphicsDevice;
 
-            #region Public Variables
             public Eye Eye { get; private set; }
 
-            public Matrix Transform { get; set; }
+            /// <summary>
+            /// Eye rotation around the Y axis, in radians
+            /// </summary>
+            public float EyeRotationY { get; set; }
+
+            /// <summary>
+            /// Eye roll around the Z axis, in radians
+            /// </summary>
+            public float EyeRoll { get; set; }
+
+            public Vector3 Translation { get; set; }
+            
+            public bool RotatePi { get; set; }
+
+            // TODO: Should we cache this transform and recalculate it
+            // on an Update method?
+            public Matrix Transform
+            {
+                get
+                {
+                    var ret = Matrix.CreateRotationY(EyeRotationY)
+                        * Matrix.CreateRotationZ(EyeRoll);
+
+                    if(RotatePi)
+                    {
+                        ret = ret * Matrix.CreateRotationZ(MathHelper.Pi);
+                    }
+                    ret = ret * Matrix.CreateTranslation(Translation);
+                    return ret;
+                }
+            }
 
             // JEB: Do we need this?
             public bool CameraEnabled { get; set; }
 
+            // TODO: Should we cache this Viewport and recalculate it
+            // on an Update method?
             public Viewport Viewport {
                 get
                 {
@@ -63,7 +94,6 @@ namespace OSVR
                     throw new InvalidOperationException("Unexpected eye type.");
                 }
             }
-            #endregion
 
             public VREye(GraphicsDevice graphicsDevice, Eye eye)
             {

@@ -98,11 +98,8 @@ namespace OSVR
                     var rightTransform = rightEye.Transform;
                     var leftTransform = leftEye.Transform;
 
-                    rightTransform.Translation = Vector3.Right * (maxStereo * StereoAmount);
-                    leftTransform.Translation = Vector3.Left * (maxStereo * StereoAmount);
-
-                    leftEye.Transform = leftTransform;
-                    rightEye.Transform = rightTransform;
+                    LeftEye.Translation = Vector3.Left * (maxStereo * StereoAmount);
+                    RightEye.Translation = Vector3.Right * (maxStereo * StereoAmount);
 
                     previousStereoAmount = StereoAmount;
                 }
@@ -133,19 +130,14 @@ namespace OSVR
                     
                     // if the view needs to be rotated 180 degrees, create a parent game object that is flipped
                     // 180 degrees on the z axis
-                    //if (deviceDescriptor.Rotate180 > 0)
-                    //{
-                    //    GameObject vrHeadParent = new GameObject();
-                    //    vrHeadParent.name = this.transform.name + "_parent";
-                    //    vrHeadParent.transform.position = this.transform.position;
-                    //    vrHeadParent.transform.rotation = this.transform.rotation;
-                    //    if (this.transform.parent != null)
-                    //    {
-                    //        vrHeadParent.transform.parent = this.transform.parent;
-                    //    }
-                    //    this.transform.parent = vrHeadParent.transform;
-                    //    vrHeadParent.transform.Rotate(0, 0, 180, Space.Self);
-                    //}
+                    if (deviceDescriptor.Rotate180 > 0)
+                    {
+                        LeftEye.RotatePi = true;
+                        RightEye.RotatePi = true;
+                    }
+
+                    SetEyeRotation(deviceDescriptor.OverlapPercent, deviceDescriptor.MonocularHorizontal);
+                    SetEyeRoll(deviceDescriptor.LeftRoll, deviceDescriptor.RightRoll);
                 }
             }
 
@@ -168,6 +160,29 @@ namespace OSVR
                 graphicsDeviceManager.PreferredBackBufferHeight = height;
                 graphicsDeviceManager.IsFullScreen = true;
                 graphicsDeviceManager.ApplyChanges();
+            }
+
+            // rotate each eye based on overlap percent and horizontal FOV
+            // Formula: ((OverlapPercent/100) * hFOV)/2
+            private void SetEyeRotation(float overlapPercent, float horizontalFov)
+            {
+                float overlap = overlapPercent * 0.01f * horizontalFov * 0.5f;
+
+                // with a 90 degree FOV with 100% overlap, the eyes should not be rotated
+                // compare rotationY with half of FOV
+
+                float halfFOV = horizontalFov * 0.5f;
+                float rotateYAmount = MathHelper.ToRadians(System.Math.Abs(overlap - halfFOV));
+
+                LeftEye.EyeRotationY = -rotateYAmount;
+                RightEye.EyeRotationY = rotateYAmount;
+            }
+
+            // rotate each eye on the z axis by the specified amount, in degrees
+            private void SetEyeRoll(float leftRoll, float rightRoll)
+            {
+                LeftEye.EyeRoll = MathHelper.ToRadians(leftRoll);
+                RightEye.EyeRoll = MathHelper.ToRadians(rightRoll);
             }
         }
     }

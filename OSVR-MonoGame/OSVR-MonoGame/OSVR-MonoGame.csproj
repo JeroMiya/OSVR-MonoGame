@@ -63,9 +63,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\OSVR-Unity\Managed-OSVR\ClientKit45\ClientKit45.csproj">
-      <Project>{690fabb1-5188-48d5-8f65-ae4ddacf9953}</Project>
-      <Name>ClientKit45</Name>
+    <ProjectReference Include="..\..\..\Managed-OSVR\ClientKit\ClientKit.csproj">
+      <Project>{9ab9f53d-1f42-4045-8dfc-9d389d44bb35}</Project>
+      <Name>ClientKit</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

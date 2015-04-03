@@ -10,11 +10,11 @@ namespace OSVR
 {
     namespace MonoGame
     {
-		public interface IClientKit : IDisposable
-		{
-			string AppID { get; }
-			OSVR.ClientKit.ClientContext Context { get; }
-		}
+        public interface IClientKit : IDisposable
+        {
+            string AppID { get; }
+            OSVR.ClientKit.ClientContext Context { get; }
+        }
 
         public class ClientKit : IClientKit
         {
@@ -27,35 +27,35 @@ namespace OSVR
             }
 
             private readonly string appID;
-			public string AppID { get { return AppID; } }
+            public string AppID { get { return appID; } }
             private OSVR.ClientKit.ClientContext context;
 
-			public ClientKit(string appID)
-			{
-				if (appID == null)
-				{
-					throw new ArgumentNullException("appID");
-				}
-				if (0 == appID.Length)
-				{
-					Debug.WriteLine("OSVR ClientKit instance needs AppID set to a reverse-order DNS name! Using dummy name...");
-					this.appID = "org.opengoggles.osvr-unity.dummy";
-				}
-				else
-				{
-					this.appID = appID;
-				}
+            public ClientKit(string appID)
+            {
+                if (appID == null)
+                {
+                    throw new ArgumentNullException("appID");
+                }
+                if (0 == appID.Length)
+                {
+                    Debug.WriteLine("OSVR ClientKit instance needs AppID set to a reverse-order DNS name! Using dummy name...");
+                    this.appID = "org.opengoggles.osvr-unity.dummy";
+                }
+                else
+                {
+                    this.appID = appID;
+                }
 
-				Debug.WriteLine("[OSVR] Starting with app ID: " + AppID);
-				context = new OSVR.ClientKit.ClientContext(AppID, 0);
+                Debug.WriteLine("[OSVR] Starting with app ID: " + AppID);
+                context = new OSVR.ClientKit.ClientContext(AppID, 0);
 
-			}
+            }
 
-			public void Update(GameTime gameTime)
-			{
-				if (disposed) { throw new ObjectDisposedException("context"); }
-				context.update();
-			}
+            public void Update(GameTime gameTime)
+            {
+                if (disposed) { throw new ObjectDisposedException("context"); }
+                context.update();
+            }
 
             /// <summary>
             /// Access the underlying Managed-OSVR client context object.
@@ -64,36 +64,36 @@ namespace OSVR
             {
                 get
                 {
-					if (disposed) { throw new ObjectDisposedException("context"); }
-					return context;
+                    if (disposed) { throw new ObjectDisposedException("context"); }
+                    return context;
                 }
             }
 
-			#region Basic Dispose Pattern
+            #region Basic Dispose Pattern
 
-			private bool disposed = false;
-			public void Dispose()
-			{
-				Dispose(true);
-				GC.SuppressFinalize(this);
-			}
+            private bool disposed = false;
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
 
-			protected void Dispose(bool disposing)
-			{
-				if (disposed) {
-					return;
-				}
+            protected void Dispose(bool disposing)
+            {
+                if (disposed) {
+                    return;
+                }
 
-				if (disposing)
-				{
-					if (context != null) { context.Dispose(); }
-				}
-				context = null;
-				disposed = true;
-			}
+                if (disposing)
+                {
+                    if (context != null) { context.Dispose(); }
+                }
+                context = null;
+                disposed = true;
+            }
 
-			#endregion
+            #endregion
 
-		}
+        }
     }
 }

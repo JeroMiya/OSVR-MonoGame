@@ -60,6 +60,15 @@ namespace OSVR
                 }
             }
 
+            public Matrix Projection
+            {
+                get
+                {
+                    return Matrix.CreatePerspectiveFieldOfView(
+                        MathHelper.PiOver4, Viewport.AspectRatio, 10f, 5000f);
+                }
+            }
+
             // JEB: Do we need this?
             public bool CameraEnabled { get; set; }
 

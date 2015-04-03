@@ -13,7 +13,9 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections;
+using System.Diagnostics;
 
 namespace OSVR
 {
@@ -21,6 +23,11 @@ namespace OSVR
     {
 
         public enum ViewMode { Stereo, Mono };
+
+        public interface IStereoSceneDrawer
+        {
+            void DrawScene(GameTime gameTime, Viewport viewport, Matrix view, Matrix projection);
+        }
 
         public class VRHead
         {
@@ -107,7 +114,10 @@ namespace OSVR
 
             private void GetDeviceDescription()
             {
-                deviceDescriptor = DeviceDescriptor.Parse(clientKit.Context.getStringParameter("/display"));
+                var displayJson = clientKit.Context.getStringParameter("/display");
+                Debug.WriteLine("/display:");
+                Debug.WriteLine(displayJson);
+                deviceDescriptor = DeviceDescriptor.Parse(displayJson);
                 if(deviceDescriptor != null)
                 {
                     switch(deviceDescriptor.DisplayMode)
@@ -183,6 +193,25 @@ namespace OSVR
             {
                 LeftEye.EyeRoll = MathHelper.ToRadians(leftRoll);
                 RightEye.EyeRoll = MathHelper.ToRadians(rightRoll);
+            }
+
+            // TODO: instead of an Action, maybe pass an interface?
+            // I think that might be easier to use. Hard to document
+            // what each action arguments should be.
+            public void DrawScene(GameTime gameTime, IStereoSceneDrawer sceneDrawer)
+            {
+                DrawSceneForEye(LeftEye, gameTime, sceneDrawer);
+                DrawSceneForEye(RightEye, gameTime, sceneDrawer);
+                // TODO: implement monoscopic rendering, which will basically just call DrawScene
+                // once with the full ViewPort and a non-stereo view matrix/projection.
+            }
+
+            private void DrawSceneForEye(VREye eye, GameTime gameTime, IStereoSceneDrawer sceneDrawer)
+            {
+                Viewport oldViewPort = graphicsDeviceManager.GraphicsDevice.Viewport;
+                graphicsDeviceManager.GraphicsDevice.Viewport = eye.Viewport;
+                sceneDrawer.DrawScene(gameTime, eye.Viewport, eye.Transform, eye.Projection);
+                graphicsDeviceManager.GraphicsDevice.Viewport = oldViewPort;
             }
         }
     }

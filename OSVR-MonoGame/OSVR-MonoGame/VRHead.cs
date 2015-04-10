@@ -54,13 +54,14 @@ namespace OSVR
             readonly GraphicsDeviceManager graphicsDeviceManager;
             DeviceDescriptor deviceDescriptor;
             readonly ClientKit clientKit;
-
-            public VRHead(GraphicsDeviceManager graphicsDeviceManager, ClientKit clientKit)
+            readonly IInterfaceSignal<Quaternion> orientationSignal;
+            public VRHead(GraphicsDeviceManager graphicsDeviceManager, ClientKit clientKit, IInterfaceSignal<Quaternion> orientationSignal)
             {
+                this.orientationSignal = orientationSignal;
                 this.graphicsDeviceManager = graphicsDeviceManager;
                 this.clientKit = clientKit;
-                leftEye = new VREye(graphicsDeviceManager.GraphicsDevice, Eye.Left);
-                rightEye = new VREye(graphicsDeviceManager.GraphicsDevice, Eye.Right);
+                leftEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Left);
+                rightEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Right);
                 // TODO: Provide a way to pass in an explicit json value?
                 GetDeviceDescription();
             }

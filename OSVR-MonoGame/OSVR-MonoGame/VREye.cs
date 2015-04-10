@@ -25,6 +25,7 @@ namespace OSVR
         public class VREye
         {
             private readonly GraphicsDevice graphicsDevice;
+            private readonly IInterfaceSignal<Quaternion> orientationSignal;
 
             public Eye Eye { get; private set; }
 
@@ -48,14 +49,17 @@ namespace OSVR
             {
                 get
                 {
-                    var ret = Matrix.CreateRotationY(EyeRotationY)
-                        * Matrix.CreateRotationZ(EyeRoll);
+                    // orientation matrix
+                    var orientationRotation = Matrix.CreateFromQuaternion(this.orientationSignal.Value);
+                    
+                    // eye device rotation
+                    var pitch = EyeRotationY;
+                    var roll = EyeRoll;
+                    var yaw = RotatePi ? MathHelper.Pi : 0f;
+                    var eyeRotation = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
 
-                    if(RotatePi)
-                    {
-                        ret = ret * Matrix.CreateRotationZ(MathHelper.Pi);
-                    }
-                    ret = ret * Matrix.CreateTranslation(Translation);
+                    // translate (Should this be eyeRotation * orientationRotation)
+                    var ret = orientationRotation * eyeRotation * Matrix.CreateTranslation(Translation);
                     return ret;
                 }
             }
@@ -104,9 +108,10 @@ namespace OSVR
                 }
             }
 
-            public VREye(GraphicsDevice graphicsDevice, Eye eye)
+            public VREye(GraphicsDevice graphicsDevice, IInterfaceSignal<Quaternion> orientationSignal, Eye eye)
             {
                 this.graphicsDevice = graphicsDevice;
+                this.orientationSignal = orientationSignal;
                 this.Eye = eye;
             }
         }

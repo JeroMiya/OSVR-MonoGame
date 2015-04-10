@@ -11,18 +11,20 @@ namespace OSVR
         /// </summary>
         public class OrientationSignal : InterfaceSignalBase<Quaternion>
         {
-			OSVR.MonoGame.InterfaceCallback<Quaternion> cb;
+            OSVR.MonoGame.InterfaceCallback<Quaternion> cb;
 
-			public OrientationSignal(string path, OSVR.MonoGame.IClientKit clientKit)
-				: base(path, clientKit)
-			{ }
+            public OrientationSignal(string path, OSVR.MonoGame.IClientKit clientKit)
+                : base(path, clientKit)
+            {
+                Value = Quaternion.Identity;
+            }
 
-			public override void Start()
-			{
-				base.Start();
-				cb = new MonoGame.InterfaceCallback<Quaternion>(Callback);
-				Interface.RegisterCallback(cb);
-			}
+            public override void Start()
+            {
+                base.Start();
+                cb = new MonoGame.InterfaceCallback<Quaternion>(Callback);
+                Interface.RegisterCallback(cb);
+            }
         }
     }
 }

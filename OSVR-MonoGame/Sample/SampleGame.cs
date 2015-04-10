@@ -14,7 +14,7 @@ namespace Sample
 
         VRHead vrHead;
         ClientKit clientKit;
-
+        IInterfaceSignal<Quaternion> orientationSignal;
         public SampleGame()
             : base()
         {
@@ -25,7 +25,8 @@ namespace Sample
         protected override void Initialize()
         {
             clientKit = new ClientKit("");
-            vrHead = new VRHead(graphics, clientKit);
+            orientationSignal = new OrientationSignal("/me/head", clientKit);
+            vrHead = new VRHead(graphics, clientKit, orientationSignal);
             
             base.Initialize();
         }
@@ -35,10 +36,12 @@ namespace Sample
             spriteBatch = new SpriteBatch(GraphicsDevice);
             blank = new Texture2D(GraphicsDevice, 1, 1);
             blank.SetData(new[] { Color.White });
+            orientationSignal.Start();
         }
 
         protected override void UnloadContent()
         {
+            orientationSignal.Stop();
             clientKit.Dispose();
             clientKit = null;
         }

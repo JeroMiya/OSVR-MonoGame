@@ -59,7 +59,8 @@ namespace OSVR
                     var eyeRotation = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
 
                     // translate (Should this be eyeRotation * orientationRotation)
-                    var ret = orientationRotation * eyeRotation * Matrix.CreateTranslation(Translation);
+                    var translation = Matrix.CreateTranslation(Translation);
+                    var ret = orientationRotation * eyeRotation * translation;
                     return ret;
                 }
             }
@@ -69,7 +70,7 @@ namespace OSVR
                 get
                 {
                     return Matrix.CreatePerspectiveFieldOfView(
-                        MathHelper.PiOver4, Viewport.AspectRatio, 10f, 5000f);
+                        MathHelper.PiOver4, Viewport.AspectRatio, 0.01f, 5000f);
                 }
             }
 

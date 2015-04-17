@@ -66,7 +66,7 @@ namespace OSVR
                 GetDeviceDescription();
             }
 
-            void Update()
+            public void Update()
             {
                 UpdateStereoAmount();
                 UpdateViewMode();
@@ -100,14 +100,10 @@ namespace OSVR
             {
                 if (StereoAmount != previousStereoAmount)
                 {
-                    StereoAmount = System.Math.Min(StereoAmount, 0);
-                    StereoAmount = System.Math.Max(StereoAmount, 1);
+                    StereoAmount = MathHelper.Clamp(StereoAmount, 0f, 1f);
 
-                    var rightTransform = rightEye.Transform;
-                    var leftTransform = leftEye.Transform;
-
-                    LeftEye.Translation = Vector3.Left * (maxStereo * StereoAmount);
-                    RightEye.Translation = Vector3.Right * (maxStereo * StereoAmount);
+                    LeftEye.Translation = Vector3.Left * (MaxStereo * StereoAmount);
+                    RightEye.Translation = Vector3.Right * (MaxStereo * StereoAmount);
 
                     previousStereoAmount = StereoAmount;
                 }
@@ -121,6 +117,21 @@ namespace OSVR
                 deviceDescriptor = DeviceDescriptor.Parse(displayJson);
                 if(deviceDescriptor != null)
                 {
+                    // temporary overrides to simulate OSVR HDK
+                    // without actually reading in the json value
+                    deviceDescriptor.DisplayMode = "horz_side_by_side";
+                    deviceDescriptor.MonocularHorizontal = 90f;
+                    deviceDescriptor.MonocularVertical = 101.25f;
+                    deviceDescriptor.OverlapPercent = 100f;
+                    deviceDescriptor.PitchTilt = 0f;
+                    deviceDescriptor.K1Red = 0f;
+                    deviceDescriptor.K1Green = 0f;
+                    deviceDescriptor.K1Blue = 0f;
+                    deviceDescriptor.RightRoll = 0f;
+                    deviceDescriptor.LeftRoll = 0f;
+                    deviceDescriptor.CenterProjX = 0.5f;
+                    deviceDescriptor.CenterProjY = 0.5f;
+
                     switch(deviceDescriptor.DisplayMode)
                     {
                         case "full_screen":
@@ -132,7 +143,7 @@ namespace OSVR
                             ViewMode = MonoGame.ViewMode.Stereo;
                             break;
                     }
-                    StereoAmount = MathHelper.Clamp(deviceDescriptor.OverlapPercent, 0f, 100f);
+                    StereoAmount = MathHelper.Clamp(deviceDescriptor.OverlapPercent, 0f, 100f) / 100f;
                     SetResolution(deviceDescriptor.Width, deviceDescriptor.Height); // set resolution before FOV
                     VerticalFieldOfView = MathHelper.Clamp(deviceDescriptor.MonocularVertical, 0, 180);
                     // TODO: should we provide HorizontalFieldOfView?

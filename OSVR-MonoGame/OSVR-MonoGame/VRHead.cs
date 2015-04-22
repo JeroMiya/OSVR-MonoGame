@@ -33,24 +33,19 @@ namespace OSVR
         {
             public ViewMode ViewMode { get; set; }
 
-            /// <summary>
-            /// Value between 0.0f and 1.0f
-            /// </summary>
-            public float StereoAmount { get; set; }
+            private float worldUnitsPerMeter = 1f;
+            public float WorldUnitsPerMeter { get { return worldUnitsPerMeter; } set { worldUnitsPerMeter = value; } }
 
-            private float maxStereo = .03f;
-            public float MaxStereo { get { return maxStereo; } set { maxStereo = value; } }
+            private float ipd = .061f;
+            public float IPDInMeters { get { return ipd; } set { ipd = value; } }
+            public float IPDInWorldUnits { get { return IPDInMeters * WorldUnitsPerMeter; } set { ipd = value / WorldUnitsPerMeter; } }
+
+
             public float VerticalFieldOfView { get; private set; }
-            public bool CameraEnabled { get; set; }
 
-            readonly VREye leftEye;
-            public VREye LeftEye { get { return leftEye; } }
+            public VREye LeftEye { get; private set; }
+            public VREye RightEye { get; private set; }
 
-            readonly VREye rightEye;
-            public VREye RightEye { get { return rightEye; } }
-
-            float previousStereoAmount;
-            ViewMode previousViewMode;
             readonly GraphicsDeviceManager graphicsDeviceManager;
             DeviceDescriptor deviceDescriptor;
             readonly ClientKit clientKit;
@@ -60,8 +55,6 @@ namespace OSVR
                 this.orientationSignal = orientationSignal;
                 this.graphicsDeviceManager = graphicsDeviceManager;
                 this.clientKit = clientKit;
-                leftEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Left);
-                rightEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Right);
                 // TODO: Provide a way to pass in an explicit json value?
                 GetDeviceDescription();
             }
@@ -69,44 +62,12 @@ namespace OSVR
             public void Update()
             {
                 UpdateStereoAmount();
-                UpdateViewMode();
-            }
-
-            bool firstUpdate = true;
-            void UpdateViewMode()
-            {
-                if (firstUpdate || previousViewMode != ViewMode)
-                {
-                    switch (ViewMode)
-                    {
-                        case ViewMode.Mono:
-                            CameraEnabled = true;
-                            leftEye.CameraEnabled = false;
-                            rightEye.CameraEnabled = false;
-                            break;
-
-                        case ViewMode.Stereo:
-                            CameraEnabled = false;
-                            leftEye.CameraEnabled = true;
-                            rightEye.CameraEnabled = true;
-                            break;
-                    }
-                }
-
-                previousViewMode = ViewMode;
             }
 
             void UpdateStereoAmount()
             {
-                if (StereoAmount != previousStereoAmount)
-                {
-                    StereoAmount = MathHelper.Clamp(StereoAmount, 0f, 1f);
-
-                    LeftEye.Translation = Vector3.Left * (MaxStereo * StereoAmount);
-                    RightEye.Translation = Vector3.Right * (MaxStereo * StereoAmount);
-
-                    previousStereoAmount = StereoAmount;
-                }
+                LeftEye.Translation = Vector3.Left * (IPDInWorldUnits * 0.5f);
+                RightEye.Translation = Vector3.Right * (IPDInWorldUnits * 0.5f);
             }
 
             private void GetDeviceDescription()
@@ -132,6 +93,9 @@ namespace OSVR
                     deviceDescriptor.CenterProjX = 0.5f;
                     deviceDescriptor.CenterProjY = 0.5f;
 
+                    LeftEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Left, deviceDescriptor);
+                    RightEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Right, deviceDescriptor);
+
                     switch(deviceDescriptor.DisplayMode)
                     {
                         case "full_screen":
@@ -143,7 +107,6 @@ namespace OSVR
                             ViewMode = MonoGame.ViewMode.Stereo;
                             break;
                     }
-                    StereoAmount = MathHelper.Clamp(deviceDescriptor.OverlapPercent, 0f, 100f) / 100f;
                     SetResolution(deviceDescriptor.Width, deviceDescriptor.Height); // set resolution before FOV
                     VerticalFieldOfView = MathHelper.Clamp(deviceDescriptor.MonocularVertical, 0, 180);
                     // TODO: should we provide HorizontalFieldOfView?

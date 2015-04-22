@@ -26,6 +26,7 @@ namespace OSVR
         {
             private readonly GraphicsDevice graphicsDevice;
             private readonly IInterfaceSignal<Quaternion> orientationSignal;
+            private readonly DeviceDescriptor deviceDescriptor;
 
             public Eye Eye { get; private set; }
 
@@ -74,9 +75,6 @@ namespace OSVR
                 }
             }
 
-            // JEB: Do we need this?
-            public bool CameraEnabled { get; set; }
-
             // TODO: Should we cache this Viewport and recalculate it
             // on an Update method?
             public Viewport Viewport {
@@ -109,11 +107,12 @@ namespace OSVR
                 }
             }
 
-            public VREye(GraphicsDevice graphicsDevice, IInterfaceSignal<Quaternion> orientationSignal, Eye eye)
+            public VREye(GraphicsDevice graphicsDevice, IInterfaceSignal<Quaternion> orientationSignal, Eye eye, DeviceDescriptor deviceDescriptor)
             {
                 this.graphicsDevice = graphicsDevice;
                 this.orientationSignal = orientationSignal;
                 this.Eye = eye;
+                this.deviceDescriptor = deviceDescriptor;
             }
         }
     }

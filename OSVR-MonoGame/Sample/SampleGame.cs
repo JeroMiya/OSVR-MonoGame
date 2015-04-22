@@ -67,6 +67,10 @@ namespace Sample
             if (kbs.IsKeyDown(Keys.Up)) { posY += moveSpeed * t; }
             if (kbs.IsKeyDown(Keys.Down)) { posY -= moveSpeed * t; }
 
+            // increase/decrease stereo amount
+            if (kbs.IsKeyDown(Keys.Q)) { vrHead.WorldUnitsPerMeter += 5.0f * t; }
+            if (kbs.IsKeyDown(Keys.E)) { vrHead.WorldUnitsPerMeter -= 5.0f * t; }
+
             vrHead.Update();
             orientationSignal.Update(gameTime);
 

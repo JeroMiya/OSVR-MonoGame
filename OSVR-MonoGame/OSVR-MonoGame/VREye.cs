@@ -70,8 +70,19 @@ namespace OSVR
             {
                 get
                 {
+                    float aspectRatio = (float)deviceDescriptor.Width / (float)deviceDescriptor.Height;
+                    // aspect ratio per eye depends on how many displays the HMD has
+                    // for example, dSight has two 1920x1080 displays, so each eye should have 1.77 aspec
+                    // whereas HDK has one 1920x1080 display, each eye should have 0.88 aspec (half of 1.77)
+                    float aspectRatioPerEye = deviceDescriptor.NumDisplays == 1 ? aspectRatio * 0.5f : aspectRatio;
+                    // set projection matrix for each eye.
+                    
+                    // Camera.projectionMatrix = Matrix4x4.Perspective(_deviceDescriptor.MonocularVertical, aspectRatioPerEye, Camera.nearClipPlane, Camera.farClipPlane);
                     return Matrix.CreatePerspectiveFieldOfView(
-                        MathHelper.PiOver4, Viewport.AspectRatio, 0.01f, 5000f);
+                        fieldOfView: MathHelper.ToRadians(deviceDescriptor.MonocularVertical),
+                        aspectRatio: aspectRatioPerEye,
+                        nearPlaneDistance: 0.01f,
+                        farPlaneDistance: 5000f);
                 }
             }
 

@@ -3,5 +3,4 @@ MonoGame adapters for Managed-OSVR.
 
 WARNING: This repository is highly experimental and a work in progress.
 
-Managed-OSVR will be moving to its own repository and be made into a
-NuGet package. Until then, clone OSVR-Unity next to OSVR-MonoGame.
+To build, you will need a clone of Managed-OSVR at the same level as this repository, and you'll need to run the script to create the nuget package in Managed-OSVR. This will go away when Managed-OSVR becomes an official NuGet package.

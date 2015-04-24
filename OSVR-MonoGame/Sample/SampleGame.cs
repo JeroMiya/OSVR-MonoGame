@@ -87,7 +87,7 @@ namespace Sample
             GraphicsDevice.BlendState = BlendState.Opaque;
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            vrHead.DrawScene(gameTime, this);
+            vrHead.DrawScene(gameTime, spriteBatch, this);
 
             base.Draw(gameTime);
         }

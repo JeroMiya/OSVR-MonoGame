@@ -46,6 +46,9 @@ namespace OSVR
             public VREye LeftEye { get; private set; }
             public VREye RightEye { get; private set; }
 
+            public RenderTarget2D renderTargetLeft;
+            public RenderTarget2D renderTargetRight;
+
             readonly GraphicsDeviceManager graphicsDeviceManager;
             DeviceDescriptor deviceDescriptor;
             readonly ClientKit clientKit;
@@ -138,11 +141,25 @@ namespace OSVR
             //}
 
             //Set the Screen Resolution
+
+            private RenderTarget2D MakeRenderTarget2D(int width, int height)
+            {
+                return new RenderTarget2D(
+                    graphicsDevice: graphicsDeviceManager.GraphicsDevice,
+                    width: width / 2,
+                    height: height,
+                    mipMap: false,
+                    preferredFormat: graphicsDeviceManager.GraphicsDevice.PresentationParameters.BackBufferFormat, 
+                    preferredDepthFormat: DepthFormat.Depth24);
+            }
+
             private void SetResolution(int width, int height)
             {
                 //set the resolution
                 graphicsDeviceManager.PreferredBackBufferWidth = width;
                 graphicsDeviceManager.PreferredBackBufferHeight = height;
+                renderTargetLeft = MakeRenderTarget2D(width, height);
+                renderTargetRight = MakeRenderTarget2D(width, height);
                 graphicsDeviceManager.IsFullScreen = true;
                 graphicsDeviceManager.ApplyChanges();
             }
@@ -173,20 +190,37 @@ namespace OSVR
             // TODO: instead of an Action, maybe pass an interface?
             // I think that might be easier to use. Hard to document
             // what each action arguments should be.
-            public void DrawScene(GameTime gameTime, IStereoSceneDrawer sceneDrawer)
+            public void DrawScene(GameTime gameTime, SpriteBatch spriteBatch, IStereoSceneDrawer sceneDrawer)
             {
-                DrawSceneForEye(LeftEye, gameTime, sceneDrawer);
-                DrawSceneForEye(RightEye, gameTime, sceneDrawer);
+                DrawSceneForEye(LeftEye, gameTime, renderTargetLeft, sceneDrawer);
+                DrawSceneForEye(RightEye, gameTime, renderTargetRight, sceneDrawer);
+
+                var leftRectangle = new Rectangle(
+                    LeftEye.Viewport.X, LeftEye.Viewport.Y,
+                    LeftEye.Viewport.Width, LeftEye.Viewport.Height);
+
+                var rightRectangle = new Rectangle(
+                    RightEye.Viewport.X, RightEye.Viewport.Y,
+                    LeftEye.Viewport.Width, RightEye.Viewport.Height);
+
+                graphicsDeviceManager.GraphicsDevice.SetRenderTarget(null);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque/*, null, null, null, distortionShader*/);
+                spriteBatch.Draw(renderTargetLeft, leftRectangle, Color.White);
+                spriteBatch.End();
+
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque/*, null, null, null, distortionShader*/);
+                spriteBatch.Draw(renderTargetRight, rightRectangle, Color.White);
+                spriteBatch.End();
                 // TODO: implement monoscopic rendering, which will basically just call DrawScene
                 // once with the full ViewPort and a non-stereo view matrix/projection.
             }
 
-            private void DrawSceneForEye(VREye eye, GameTime gameTime, IStereoSceneDrawer sceneDrawer)
+            private void DrawSceneForEye(VREye eye, GameTime gameTime, RenderTarget2D renderTarget, IStereoSceneDrawer sceneDrawer)
             {
-                Viewport oldViewPort = graphicsDeviceManager.GraphicsDevice.Viewport;
-                graphicsDeviceManager.GraphicsDevice.Viewport = eye.Viewport;
-                sceneDrawer.DrawScene(gameTime, eye.Viewport, eye.Transform, eye.Projection);
-                graphicsDeviceManager.GraphicsDevice.Viewport = oldViewPort;
+                graphicsDeviceManager.GraphicsDevice.SetRenderTarget(renderTarget);
+                graphicsDeviceManager.GraphicsDevice.DepthStencilState = new DepthStencilState() { DepthBufferEnable = true };
+                graphicsDeviceManager.GraphicsDevice.Clear(Color.Black);
+                sceneDrawer.DrawScene(gameTime, graphicsDeviceManager.GraphicsDevice.Viewport, eye.Transform, eye.Projection);
             }
         }
     }

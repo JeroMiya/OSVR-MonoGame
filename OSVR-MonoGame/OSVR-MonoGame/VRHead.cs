@@ -96,8 +96,8 @@ namespace OSVR
                     deviceDescriptor.CenterProjX = 0.5f;
                     deviceDescriptor.CenterProjY = 0.5f;
 
-                    LeftEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Left, deviceDescriptor);
-                    RightEye = new VREye(graphicsDeviceManager.GraphicsDevice, orientationSignal, Eye.Right, deviceDescriptor);
+                    LeftEye = new VREye(orientationSignal, Eye.Left, deviceDescriptor);
+                    RightEye = new VREye(orientationSignal, Eye.Right, deviceDescriptor);
 
                     switch(deviceDescriptor.DisplayMode)
                     {

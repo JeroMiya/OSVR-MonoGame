@@ -24,7 +24,6 @@ namespace OSVR
 
         public class VREye
         {
-            private readonly GraphicsDevice graphicsDevice;
             private readonly IInterfaceSignal<Quaternion> orientationSignal;
             private readonly DeviceDescriptor deviceDescriptor;
 
@@ -106,27 +105,26 @@ namespace OSVR
                                 MaxDepth = 1,
                                 X = 0,
                                 Y = 0,
-                                Width = graphicsDevice.Viewport.Width / 2,
-                                Height = graphicsDevice.Viewport.Height,
+                                Width = deviceDescriptor.Width / 2,
+                                Height = deviceDescriptor.Height,
                             };
                         case MonoGame.Eye.Right:
                             return new Viewport
                             {
                                 MinDepth = 0,
                                 MaxDepth = 1,
-                                X = graphicsDevice.Viewport.Width / 2,
+                                X = deviceDescriptor.Width / 2,
                                 Y = 0,
-                                Width = graphicsDevice.Viewport.Width / 2,
-                                Height = graphicsDevice.Viewport.Height,
+                                Width = deviceDescriptor.Width / 2,
+                                Height = deviceDescriptor.Height,
                             };
                     }
                     throw new InvalidOperationException("Unexpected eye type.");
                 }
             }
 
-            public VREye(GraphicsDevice graphicsDevice, IInterfaceSignal<Quaternion> orientationSignal, Eye eye, DeviceDescriptor deviceDescriptor)
+            public VREye(IInterfaceSignal<Quaternion> orientationSignal, Eye eye, DeviceDescriptor deviceDescriptor)
             {
-                this.graphicsDevice = graphicsDevice;
                 this.orientationSignal = orientationSignal;
                 this.Eye = eye;
                 this.deviceDescriptor = deviceDescriptor;

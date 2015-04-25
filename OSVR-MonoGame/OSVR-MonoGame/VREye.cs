@@ -84,7 +84,7 @@ namespace OSVR
 
                     // Camera.projectionMatrix = Matrix4x4.Perspective(_deviceDescriptor.MonocularVertical, aspectRatioPerEye, Camera.nearClipPlane, Camera.farClipPlane);
                     return projectionTranslation * Matrix.CreatePerspectiveFieldOfView(
-                        fieldOfView: MathHelper.ToRadians(deviceDescriptor.MonocularVertical),
+                        fieldOfView: MathHelper.ToRadians(deviceDescriptor.MonocularHorizontal),
                         aspectRatio: aspectRatioPerEye,
                         nearPlaneDistance: 0.01f,
                         farPlaneDistance: 5000f);

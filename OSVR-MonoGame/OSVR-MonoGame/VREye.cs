@@ -51,14 +51,17 @@ namespace OSVR
                 {
                     // orientation matrix
                     var orientationRotation = Matrix.CreateFromQuaternion(this.orientationSignal.Value);
-                    
+                    var target = Vector3.Transform(Vector3.Forward, orientationRotation);
+                    var upPoint = Vector3.Transform(Vector3.Up, orientationRotation);
+                    var viewMatrix = Matrix.CreateLookAt(Vector3.Zero, target, upPoint);
+
                     // eye device rotation
                     var pitch = EyeRotationY;
                     var roll = EyeRoll;
                     var yaw = RotatePi ? MathHelper.Pi : 0f;
                     var eyeRotation = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
 
-                    var ret = eyeRotation * orientationRotation;
+                    var ret = eyeRotation * viewMatrix;
                     return ret;
                 }
             }

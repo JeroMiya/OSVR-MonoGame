@@ -27,10 +27,10 @@ namespace OSVR_MonoGame
         public void Update(GameTime gameTime)
         {
             var currentKeyboardState = Keyboard.GetState();
-            if (currentKeyboardState.IsKeyDown(Keys.A)) xRotation -= rotationSpeed;
-            if (currentKeyboardState.IsKeyDown(Keys.D)) xRotation += rotationSpeed;
-            if (currentKeyboardState.IsKeyDown(Keys.W)) yRotation -= rotationSpeed;
-            if (currentKeyboardState.IsKeyDown(Keys.S)) yRotation += rotationSpeed;
+            if (currentKeyboardState.IsKeyDown(Keys.Left)) xRotation += rotationSpeed;
+            if (currentKeyboardState.IsKeyDown(Keys.Right)) xRotation -= rotationSpeed;
+            if (currentKeyboardState.IsKeyDown(Keys.Up)) yRotation -= rotationSpeed;
+            if (currentKeyboardState.IsKeyDown(Keys.Down)) yRotation += rotationSpeed;
         }
 
         public InterfaceCallbacks Interface

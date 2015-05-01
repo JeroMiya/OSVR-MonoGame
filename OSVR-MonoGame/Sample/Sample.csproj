@@ -60,7 +60,7 @@
     <Compile Include="SampleGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WasdOrientationSignal.cs" />
+    <Compile Include="KeyboardOrientationSignal.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">

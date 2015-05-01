@@ -26,8 +26,8 @@ namespace Sample
         }
 
         const float moveSpeed = 5f;
-        float posX = 0f;
-        float posY = 0f;
+        Vector3 position = Vector3.Zero;
+
         protected override void Initialize()
         {
             clientKit = new ClientKit("");
@@ -62,10 +62,27 @@ namespace Sample
                 Exit();
             var t = (float)gameTime.ElapsedGameTime.TotalSeconds;
             var kbs = Keyboard.GetState();
-            if (kbs.IsKeyDown(Keys.Left)) { posX += moveSpeed * t; }
-            if (kbs.IsKeyDown(Keys.Right)) { posX -= moveSpeed * t; }
-            if (kbs.IsKeyDown(Keys.Up)) { posY += moveSpeed * t; }
-            if (kbs.IsKeyDown(Keys.Down)) { posY -= moveSpeed * t; }
+            Vector3 movement = Vector3.Zero;
+            if (kbs.IsKeyDown(Keys.W))
+            {
+                movement = Vector3.Forward * moveSpeed * t;
+            }
+            else if (kbs.IsKeyDown(Keys.S))
+            {
+                movement = Vector3.Backward * moveSpeed * t;
+            }
+            else if (kbs.IsKeyDown(Keys.A))
+            {
+                movement = Vector3.Left * moveSpeed * t;
+            }
+            else if(kbs.IsKeyDown(Keys.D))
+            {
+                movement = Vector3.Right * moveSpeed * t;
+            }
+
+            // TODO: Figure out why I need to invert this movement translation.
+            var transformedMovement = -Vector3.Transform(movement, orientationSignal.Value);
+            position = position + transformedMovement;
 
             // increase/decrease stereo amount
             if (kbs.IsKeyDown(Keys.Q)) { vrHead.WorldUnitsPerMeter += 5.0f * t; }
@@ -95,7 +112,7 @@ namespace Sample
         public void DrawScene(GameTime gameTime, Viewport viewport, Matrix stereoTransform, Matrix view, Matrix projection)
         {
             // TODO: Draw something fancy. Or at the very least visible?
-            var translation = Matrix.CreateTranslation(new Vector3(posX, posY, 0f));
+            var translation = Matrix.CreateTranslation(position);
             var cameraView = stereoTransform * translation * view;
             for (int i = 0; i < 10; i++)
             {

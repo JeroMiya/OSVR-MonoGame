@@ -58,9 +58,7 @@ namespace OSVR
                     var yaw = RotatePi ? MathHelper.Pi : 0f;
                     var eyeRotation = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
 
-                    // translate (Should this be eyeRotation * orientationRotation)
-                    var translation = Matrix.CreateTranslation(Translation);
-                    var ret = orientationRotation * eyeRotation * translation;
+                    var ret = eyeRotation * orientationRotation;
                     return ret;
                 }
             }

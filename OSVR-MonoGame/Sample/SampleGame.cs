@@ -92,11 +92,11 @@ namespace Sample
             base.Draw(gameTime);
         }
 
-        public void DrawScene(GameTime gameTime, Viewport viewport, Matrix view, Matrix projection)
+        public void DrawScene(GameTime gameTime, Viewport viewport, Matrix stereoTransform, Matrix view, Matrix projection)
         {
             // TODO: Draw something fancy. Or at the very least visible?
             var translation = Matrix.CreateTranslation(new Vector3(posX, posY, 0f));
-            var cameraView = translation * view;
+            var cameraView = stereoTransform * translation * view;
             for (int i = 0; i < 10; i++)
             {
                 axes.Draw(cameraView, Matrix.CreateTranslation(10f, 10f, -10 * i), projection, GraphicsDevice);

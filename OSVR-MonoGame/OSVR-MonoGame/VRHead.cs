@@ -26,7 +26,7 @@ namespace OSVR
 
         public interface IStereoSceneDrawer
         {
-            void DrawScene(GameTime gameTime, Viewport viewport, Matrix view, Matrix projection);
+            void DrawScene(GameTime gameTime, Viewport viewport, Matrix stereoTransform, Matrix view, Matrix projection);
         }
 
         public class VRHead
@@ -220,7 +220,12 @@ namespace OSVR
                 graphicsDeviceManager.GraphicsDevice.SetRenderTarget(renderTarget);
                 graphicsDeviceManager.GraphicsDevice.DepthStencilState = new DepthStencilState() { DepthBufferEnable = true };
                 graphicsDeviceManager.GraphicsDevice.Clear(Color.Black);
-                sceneDrawer.DrawScene(gameTime, graphicsDeviceManager.GraphicsDevice.Viewport, eye.Transform, eye.Projection);
+                sceneDrawer.DrawScene(
+                    gameTime: gameTime, 
+                    viewport: graphicsDeviceManager.GraphicsDevice.Viewport, 
+                    stereoTransform: Matrix.CreateTranslation(eye.Translation), 
+                    view: eye.Transform, 
+                    projection: eye.Projection);
             }
         }
     }

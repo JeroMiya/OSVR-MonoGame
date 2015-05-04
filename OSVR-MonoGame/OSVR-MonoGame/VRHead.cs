@@ -219,11 +219,13 @@ namespace OSVR
             {
                 graphicsDeviceManager.GraphicsDevice.SetRenderTarget(renderTarget);
                 graphicsDeviceManager.GraphicsDevice.DepthStencilState = new DepthStencilState() { DepthBufferEnable = true };
-                graphicsDeviceManager.GraphicsDevice.Clear(Color.Black);
+                graphicsDeviceManager.GraphicsDevice.Clear(Color.Navy);
                 sceneDrawer.DrawScene(
                     gameTime: gameTime, 
-                    viewport: graphicsDeviceManager.GraphicsDevice.Viewport, 
-                    stereoTransform: Matrix.CreateTranslation(eye.Translation), 
+                    viewport: graphicsDeviceManager.GraphicsDevice.Viewport,
+                    // Note: The transform is in view space, but VREye.Translation is in world
+                    // space, so we need to negate it here.
+                    stereoTransform: Matrix.CreateTranslation(Vector3.Negate(eye.Translation)), 
                     view: eye.Transform, 
                     projection: eye.Projection);
             }

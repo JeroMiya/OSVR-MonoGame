@@ -77,14 +77,17 @@ namespace OSVR
                     float aspectRatioPerEye = deviceDescriptor.NumDisplays == 1 ? aspectRatio * 0.5f : aspectRatio;
                     // set projection matrix for each eye.
                     
+                    // Disabling the projection translation until I can verify the correct values to place here.
+                    // The Unreal translation values were incorrect.
+
                     // TODO: calculate the actual lense separation offset based on the device metadata
-                    var projectionOffset = 0.151976421f;
-                    var projectionTranslation = Matrix.CreateTranslation(
-                        Eye == MonoGame.Eye.Left ? projectionOffset : -projectionOffset,
-                        0f, 0f);
+                    //var projectionOffset = 0.151976421f;
+                    //var projectionTranslation = Matrix.CreateTranslation(
+                    //    Eye == MonoGame.Eye.Left ? projectionOffset : -projectionOffset,
+                    //    0f, 0f);
 
                     // Camera.projectionMatrix = Matrix4x4.Perspective(_deviceDescriptor.MonocularVertical, aspectRatioPerEye, Camera.nearClipPlane, Camera.farClipPlane);
-                    return projectionTranslation * Matrix.CreatePerspectiveFieldOfView(
+                    return /*projectionTranslation **/ Matrix.CreatePerspectiveFieldOfView(
                         fieldOfView: MathHelper.ToRadians(deviceDescriptor.MonocularHorizontal),
                         aspectRatio: aspectRatioPerEye,
                         nearPlaneDistance: 0.01f,

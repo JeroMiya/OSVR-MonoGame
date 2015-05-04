@@ -11,8 +11,9 @@ namespace Sample
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        SpriteFont diagnosticFont;
         Texture2D blank;
-        Axes axes;
+        Model model;
 
         VRHead vrHead;
         ClientKit clientKit;
@@ -34,13 +35,13 @@ namespace Sample
             //orientationSignal = new OrientationSignal("/me/head", clientKit);
             orientationSignal = new WasdOrientationSignal(GraphicsDevice.Viewport);
             vrHead = new VRHead(graphics, clientKit, orientationSignal);
-            axes = new Axes();
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            axes.LoadContent(GraphicsDevice);
+            model = Content.Load<Model>("SketchupTest");
+            diagnosticFont = Content.Load<SpriteFont>("DiagnosticFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);
             blank = new Texture2D(GraphicsDevice, 1, 1);
             blank.SetData(new[] { Color.White });
@@ -63,6 +64,7 @@ namespace Sample
             var t = (float)gameTime.ElapsedGameTime.TotalSeconds;
             var kbs = Keyboard.GetState();
             Vector3 movement = Vector3.Zero;
+            // forward/back
             if (kbs.IsKeyDown(Keys.W))
             {
                 movement = Vector3.Forward * moveSpeed * t;
@@ -71,7 +73,9 @@ namespace Sample
             {
                 movement = Vector3.Backward * moveSpeed * t;
             }
-            else if (kbs.IsKeyDown(Keys.A))
+
+            // left/right
+            if (kbs.IsKeyDown(Keys.A))
             {
                 movement = Vector3.Left * moveSpeed * t;
             }
@@ -80,13 +84,12 @@ namespace Sample
                 movement = Vector3.Right * moveSpeed * t;
             }
 
-            // TODO: Figure out why I need to invert this movement translation.
-            var transformedMovement = -Vector3.Transform(movement, orientationSignal.Value);
+            var transformedMovement = Vector3.Transform(movement, orientationSignal.Value);
             position = position + transformedMovement;
 
             // increase/decrease stereo amount
-            if (kbs.IsKeyDown(Keys.Q)) { vrHead.WorldUnitsPerMeter += 5.0f * t; }
-            if (kbs.IsKeyDown(Keys.E)) { vrHead.WorldUnitsPerMeter -= 5.0f * t; }
+            if (kbs.IsKeyDown(Keys.Q)) { vrHead.IPDInMeters += .01f * t; }
+            if (kbs.IsKeyDown(Keys.E)) { vrHead.IPDInMeters -= .01f * t; }
 
             vrHead.Update();
             orientationSignal.Update(gameTime);
@@ -112,13 +115,32 @@ namespace Sample
         public void DrawScene(GameTime gameTime, Viewport viewport, Matrix stereoTransform, Matrix view, Matrix projection)
         {
             // TODO: Draw something fancy. Or at the very least visible?
-            var translation = Matrix.CreateTranslation(position);
+            var translation = Matrix.CreateTranslation(Vector3.Negate(position));
             var cameraView = stereoTransform * translation * view;
-            for (int i = 0; i < 10; i++)
+
+            // Draw the model. A model can have multiple meshes, so loop.
+            var modelWorld = Matrix.CreateTranslation(0f, -5f, -5f);
+            foreach (ModelMesh mesh in model.Meshes)
             {
-                axes.Draw(cameraView, Matrix.CreateTranslation(10f, 10f, -10 * i), projection, GraphicsDevice);
-                axes.Draw(cameraView, Matrix.CreateTranslation(10f, -10 * i, 10f), projection, GraphicsDevice);
-                axes.Draw(cameraView, Matrix.CreateTranslation(-10 * i, 10f, 10f), projection, GraphicsDevice);
+                // This is where the mesh orientation is set, as well 
+                // as our camera and projection.
+                foreach (BasicEffect effect in mesh.Effects)
+                {
+                    effect.EnableDefaultLighting();
+                    effect.World = modelWorld;
+                    effect.View = cameraView;
+                    effect.Projection = projection;
+                }
+                // Draw the mesh, using the effects set above.
+                mesh.Draw();
+            }
+            var kbstate = Keyboard.GetState();
+            if (kbstate.IsKeyDown(Keys.Q) || kbstate.IsKeyDown(Keys.E))
+            {
+                spriteBatch.Begin();
+                spriteBatch.DrawString(diagnosticFont, "IPD: " + (vrHead.IPDInMeters * 1000).ToString() + "mm",
+                    new Vector2((float)viewport.Width / 2f, (float)viewport.Height / 2f), Color.White);
+                spriteBatch.End();
             }
         }
     }

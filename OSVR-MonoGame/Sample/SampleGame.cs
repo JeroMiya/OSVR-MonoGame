@@ -16,8 +16,15 @@ namespace Sample
         Model model;
 
         VRHead vrHead;
+        IInterfaceSignal<PoseReport> leftHandPose;
         ClientKit clientKit;
-        WasdOrientationSignal orientationSignal;
+        //KeyboardOrientationSignal keyboardOrientationSignal;
+        MouselookOrientationSignal mouseOrientationSignal;
+        IInterfaceSignal<Quaternion> orientationSignal;
+
+        const float moveSpeed = 5f;
+        Vector3 position = Vector3.Zero;
+        float rotationY = 0f;
 
         public SampleGame()
             : base()
@@ -26,14 +33,18 @@ namespace Sample
             Content.RootDirectory = "Content";
         }
 
-        const float moveSpeed = 5f;
-        Vector3 position = Vector3.Zero;
-
         protected override void Initialize()
         {
             clientKit = new ClientKit("");
             //orientationSignal = new OrientationSignal("/me/head", clientKit);
-            orientationSignal = new WasdOrientationSignal(GraphicsDevice.Viewport);
+
+            //keyboardOrientationSignal = new KeyboardOrientationSignal();
+            mouseOrientationSignal = new MouselookOrientationSignal(GraphicsDevice.Viewport);
+            orientationSignal = mouseOrientationSignal;
+            
+            leftHandPose = new PoseSignal("/me/hands/left", clientKit);
+            leftHandPose.Start();
+
             vrHead = new VRHead(graphics, clientKit, orientationSignal);
             base.Initialize();
         }
@@ -60,44 +71,60 @@ namespace Sample
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
                 Exit();
-            var t = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            var kbs = Keyboard.GetState();
-            Vector3 movement = Vector3.Zero;
-            // forward/back
-            if (kbs.IsKeyDown(Keys.W))
-            {
-                movement = Vector3.Forward * moveSpeed * t;
             }
-            else if (kbs.IsKeyDown(Keys.S))
+            else
             {
-                movement = Vector3.Backward * moveSpeed * t;
+                var t = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                var kbs = Keyboard.GetState();
+                Vector3 movement = Vector3.Zero;
+                // forward/back
+                if (kbs.IsKeyDown(Keys.W))
+                {
+                    movement = Vector3.Forward * moveSpeed * t;
+                }
+                else if (kbs.IsKeyDown(Keys.S))
+                {
+                    movement = Vector3.Backward * moveSpeed * t;
+                }
+
+                // left/right
+                if (kbs.IsKeyDown(Keys.A))
+                {
+                    movement = Vector3.Left * moveSpeed * t;
+                }
+                else if (kbs.IsKeyDown(Keys.D))
+                {
+                    movement = Vector3.Right * moveSpeed * t;
+                }
+
+                // kb left/right rotation
+                if(kbs.IsKeyDown(Keys.Left))
+                {
+                    rotationY += moveSpeed * t;
+                }
+                else if(kbs.IsKeyDown(Keys.Right))
+                {
+                    rotationY -= moveSpeed * t;
+                }
+
+                var kbRotation = Quaternion.CreateFromYawPitchRoll(rotationY, 0f, 0f);
+                var transformedMovement = Vector3.Transform(movement, kbRotation * orientationSignal.Value);
+                position = position + transformedMovement;
+
+                // increase/decrease stereo amount
+                if (kbs.IsKeyDown(Keys.Q)) { vrHead.IPDInMeters += .01f * t; }
+                if (kbs.IsKeyDown(Keys.E)) { vrHead.IPDInMeters -= .01f * t; }
+
+                vrHead.Update();
+                //keyboardOrientationSignal.Update(gameTime);
+                mouseOrientationSignal.Update(gameTime);
+
+                // clientKit.Update must be called frequently
+                // perhaps more frequently than Update is called?
+                clientKit.Update(gameTime);
             }
-
-            // left/right
-            if (kbs.IsKeyDown(Keys.A))
-            {
-                movement = Vector3.Left * moveSpeed * t;
-            }
-            else if(kbs.IsKeyDown(Keys.D))
-            {
-                movement = Vector3.Right * moveSpeed * t;
-            }
-
-            var transformedMovement = Vector3.Transform(movement, orientationSignal.Value);
-            position = position + transformedMovement;
-
-            // increase/decrease stereo amount
-            if (kbs.IsKeyDown(Keys.Q)) { vrHead.IPDInMeters += .01f * t; }
-            if (kbs.IsKeyDown(Keys.E)) { vrHead.IPDInMeters -= .01f * t; }
-
-            vrHead.Update();
-            orientationSignal.Update(gameTime);
-
-            // clientKit.Update must be called frequently
-            // perhaps more frequently than Update is called?
-            clientKit.Update(gameTime);
-
             base.Update(gameTime);
         }
 
@@ -108,7 +135,6 @@ namespace Sample
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             vrHead.DrawScene(gameTime, spriteBatch, this);
-
             base.Draw(gameTime);
         }
 
@@ -116,7 +142,8 @@ namespace Sample
         {
             // TODO: Draw something fancy. Or at the very least visible?
             var translation = Matrix.CreateTranslation(Vector3.Negate(position));
-            var cameraView = stereoTransform * translation * view;
+            var kbRotation = Matrix.CreateRotationY(-rotationY);
+            var cameraView = stereoTransform * translation * kbRotation * view;
 
             // Draw the model. A model can have multiple meshes, so loop.
             var modelWorld = Matrix.CreateTranslation(0f, -5f, -5f);

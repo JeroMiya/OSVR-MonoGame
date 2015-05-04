@@ -10,19 +10,11 @@ using System.Threading.Tasks;
 
 namespace OSVR_MonoGame
 {
-    public class WasdOrientationSignal : IInterfaceSignal<Quaternion>
+    public class KeyboardOrientationSignal : IInterfaceSignal<Quaternion>
     {
         float yRotation = 0f;
         float xRotation = 0f;
         float rotationSpeed = 0.05f;
-        int width;
-        int height;
-
-        public WasdOrientationSignal(Viewport viewport)
-        {
-            this.width = viewport.Width;
-            this.height = viewport.Height;
-        }
 
         public void Update(GameTime gameTime)
         {

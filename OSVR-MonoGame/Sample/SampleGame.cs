@@ -14,9 +14,12 @@ namespace Sample
         SpriteFont diagnosticFont;
         Texture2D blank;
         Model model;
+        Axes axes;
 
         VRHead vrHead;
         IInterfaceSignal<PoseReport> leftHandPose;
+        IInterfaceSignal<Quaternion> rightHandOrientation;
+
         ClientKit clientKit;
         //KeyboardOrientationSignal keyboardOrientationSignal;
         MouselookOrientationSignal mouseOrientationSignal;
@@ -40,9 +43,9 @@ namespace Sample
 
             //keyboardOrientationSignal = new KeyboardOrientationSignal();
             mouseOrientationSignal = new MouselookOrientationSignal(GraphicsDevice.Viewport);
-            orientationSignal = mouseOrientationSignal;
-            
             leftHandPose = new PoseSignal("/me/hands/left", clientKit);
+            rightHandOrientation = new OrientationSignal("/me/hands/right", clientKit);
+            orientationSignal = rightHandOrientation;
             leftHandPose.Start();
 
             vrHead = new VRHead(graphics, clientKit, orientationSignal);
@@ -51,6 +54,8 @@ namespace Sample
 
         protected override void LoadContent()
         {
+            axes = new Axes();
+            axes.LoadContent(GraphicsDevice);
             model = Content.Load<Model>("SketchupTest");
             diagnosticFont = Content.Load<SpriteFont>("DiagnosticFont");
             spriteBatch = new SpriteBatch(GraphicsDevice);

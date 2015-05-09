@@ -24,7 +24,13 @@ namespace OSVR
 
         public class VREye
         {
-            private readonly IInterfaceSignal<Quaternion> orientationSignal;
+            private IInterfaceSignal<Quaternion> orientationSignal;
+            public IInterfaceSignal<Quaternion> OrientationSignal 
+            { 
+                get { return orientationSignal; } 
+                set { orientationSignal = value; } 
+            }
+
             private readonly DeviceDescriptor deviceDescriptor;
 
             public Eye Eye { get; private set; }

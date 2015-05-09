@@ -52,7 +52,18 @@ namespace OSVR
             readonly GraphicsDeviceManager graphicsDeviceManager;
             DeviceDescriptor deviceDescriptor;
             readonly ClientKit clientKit;
-            readonly IInterfaceSignal<Quaternion> orientationSignal;
+            IInterfaceSignal<Quaternion> orientationSignal;
+            public IInterfaceSignal<Quaternion> OrientationSignal
+            {
+                get { return orientationSignal; }
+                set 
+                { 
+                    orientationSignal = value;
+                    LeftEye.OrientationSignal = value;
+                    RightEye.OrientationSignal = value;
+                }
+            }
+
             public VRHead(GraphicsDeviceManager graphicsDeviceManager, ClientKit clientKit, IInterfaceSignal<Quaternion> orientationSignal)
             {
                 this.orientationSignal = orientationSignal;

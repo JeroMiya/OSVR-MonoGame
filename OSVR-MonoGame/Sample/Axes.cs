@@ -20,16 +20,16 @@ namespace Sample
             vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), 3, BufferUsage.WriteOnly);
         }
 
-        public void Draw(Matrix view, Matrix world, Matrix projection, GraphicsDevice graphicsDevice)
+        public void Draw(float size, Color color, Matrix view, Matrix world, Matrix projection, GraphicsDevice graphicsDevice)
         {
             basicEffect.World = world;
             basicEffect.View = view;
             basicEffect.Projection = projection;
             basicEffect.VertexColorEnabled = true;
 
-            vertices[0] = new VertexPositionColor(new Vector3(0f, 0f, 5f), Color.Red);
-            vertices[1] = new VertexPositionColor(new Vector3(5f, 0f, 0f), Color.Green);
-            vertices[2] = new VertexPositionColor(new Vector3(-5f, 0f, 0f), Color.Blue);
+            vertices[0] = new VertexPositionColor(new Vector3(0f, 0f, size), color);
+            vertices[1] = new VertexPositionColor(new Vector3(size, 0f, 0f), color * 0.5f);
+            vertices[2] = new VertexPositionColor(new Vector3(-size, 0f, 0f), Color.Black);
             
             vertexBuffer.SetData<VertexPositionColor>(vertices);
             graphicsDevice.SetVertexBuffer(vertexBuffer);

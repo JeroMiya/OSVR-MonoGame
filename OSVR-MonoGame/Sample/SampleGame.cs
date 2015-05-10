@@ -7,27 +7,33 @@ using System;
 
 namespace Sample
 {
+    enum OrientationMode { Head, Mouselook, RightHand };
     public class SampleGame : Game, IStereoSceneDrawer
     {
+        // XNA resources
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         SpriteFont diagnosticFont;
         Texture2D blank;
         Model model;
         Axes axes;
+        KeyboardState lastKeyboardState;
 
-        VRHead vrHead;
-        IInterfaceSignal<PoseReport> leftHandPose;
-        IInterfaceSignal<Quaternion> rightHandOrientation;
-
+        // OSVR resources
         ClientKit clientKit;
-        //KeyboardOrientationSignal keyboardOrientationSignal;
+        VRHead vrHead;
+        //IInterfaceSignal<PoseReport> leftHandPose;
+        IInterfaceSignal<Quaternion> rightHandOrientation;
+        IInterfaceSignal<Quaternion> headOrientation;
+        OrientationMode orientationMode = OrientationMode.Head;
         MouselookOrientationSignal mouseOrientationSignal;
-        IInterfaceSignal<Quaternion> orientationSignal;
+        //KeyboardOrientationSignal keyboardOrientationSignal;
 
+        // Game-related properties
         const float moveSpeed = 5f;
         Vector3 position = Vector3.Zero;
         float rotationY = 0f;
+        bool firstUpdate = true;
 
         public SampleGame()
             : base()
@@ -39,16 +45,19 @@ namespace Sample
         protected override void Initialize()
         {
             clientKit = new ClientKit("");
-            //orientationSignal = new OrientationSignal("/me/head", clientKit);
 
-            //keyboardOrientationSignal = new KeyboardOrientationSignal();
-            mouseOrientationSignal = new MouselookOrientationSignal(GraphicsDevice.Viewport);
-            leftHandPose = new PoseSignal("/me/hands/left", clientKit);
+            //leftHandPose = new PoseSignal("/me/hands/left", clientKit);
+
+            // You should always be using "/me/head" for HMD orientation tracking,
+            // but we're mocking HMD head tracking with either hand tracking (e.g. Hydra controllers)
+            // or with mouselook. You can cycle through them with the O key.
+            headOrientation = new OrientationSignal("/me/head", clientKit);
             rightHandOrientation = new OrientationSignal("/me/hands/right", clientKit);
-            orientationSignal = rightHandOrientation;
-            leftHandPose.Start();
 
-            vrHead = new VRHead(graphics, clientKit, orientationSignal);
+            // Mouselook emulation of the head-tracking orientation signal
+            mouseOrientationSignal = new MouselookOrientationSignal(GraphicsDevice.Viewport);
+
+            vrHead = new VRHead(graphics, clientKit, headOrientation);
             base.Initialize();
         }
 
@@ -61,16 +70,45 @@ namespace Sample
             spriteBatch = new SpriteBatch(GraphicsDevice);
             blank = new Texture2D(GraphicsDevice, 1, 1);
             blank.SetData(new[] { Color.White });
-            orientationSignal.Start();
+
+            //leftHandPose.Start();
+            headOrientation.Start();
+            rightHandOrientation.Start();
+
             base.LoadContent();
         }
 
         protected override void UnloadContent()
         {
             base.UnloadContent();
-            orientationSignal.Stop();
+            
+            //leftHandPose.Stop();
+            rightHandOrientation.Stop();
+            headOrientation.Stop();
+
             clientKit.Dispose();
             clientKit = null;
+        }
+
+        private void CycleOrientationMode()
+        {
+            switch (orientationMode)
+            {
+                case OrientationMode.Head:
+                    orientationMode = OrientationMode.Mouselook;
+                    vrHead.OrientationSignal = mouseOrientationSignal;
+                    break;
+                case OrientationMode.Mouselook:
+                    orientationMode = OrientationMode.RightHand;
+                    vrHead.OrientationSignal = rightHandOrientation;
+                    break;
+                case OrientationMode.RightHand:
+                    orientationMode = OrientationMode.Head;
+                    vrHead.OrientationSignal = headOrientation;
+                    break;
+                default:
+                    throw new InvalidOperationException("Unknown orientation mode.");
+            }
         }
 
         protected override void Update(GameTime gameTime)
@@ -83,6 +121,20 @@ namespace Sample
             {
                 var t = (float)gameTime.ElapsedGameTime.TotalSeconds;
                 var kbs = Keyboard.GetState();
+
+                if(firstUpdate)
+                {
+                    firstUpdate = false;
+                }
+                else
+                {
+                    if(lastKeyboardState.IsKeyUp(Keys.O) && kbs.IsKeyDown(Keys.O))
+                    {
+                        CycleOrientationMode();
+                    }
+                }
+                lastKeyboardState = kbs;
+
                 Vector3 movement = Vector3.Zero;
                 // forward/back
                 if (kbs.IsKeyDown(Keys.W))
@@ -115,7 +167,7 @@ namespace Sample
                 }
 
                 var kbRotation = Quaternion.CreateFromYawPitchRoll(rotationY, 0f, 0f);
-                var transformedMovement = Vector3.Transform(movement, kbRotation * orientationSignal.Value);
+                var transformedMovement = Vector3.Transform(movement, kbRotation * vrHead.OrientationSignal.Value);
                 position = position + transformedMovement;
 
                 // increase/decrease stereo amount

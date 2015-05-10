@@ -87,25 +87,23 @@ namespace OSVR
             private void GetDeviceDescription()
             {
                 var displayJson = clientKit.Context.getStringParameter("/display");
-                Debug.WriteLine("/display:");
-                Debug.WriteLine(displayJson);
                 deviceDescriptor = DeviceDescriptor.Parse(displayJson);
                 if(deviceDescriptor != null)
                 {
-                    // temporary overrides to simulate OSVR HDK
-                    // without actually reading in the json value
-                    deviceDescriptor.DisplayMode = "horz_side_by_side";
-                    deviceDescriptor.MonocularHorizontal = 90f;
-                    deviceDescriptor.MonocularVertical = 101.25f;
-                    deviceDescriptor.OverlapPercent = 100f;
-                    deviceDescriptor.PitchTilt = 0f;
-                    deviceDescriptor.K1Red = 0f;
-                    deviceDescriptor.K1Green = 0f;
-                    deviceDescriptor.K1Blue = 0f;
-                    deviceDescriptor.RightRoll = 0f;
-                    deviceDescriptor.LeftRoll = 0f;
-                    deviceDescriptor.CenterProjX = 0.5f;
-                    deviceDescriptor.CenterProjY = 0.5f;
+                    //// temporary overrides to simulate OSVR HDK
+                    //// without actually reading in the json value
+                    //deviceDescriptor.DisplayMode = "horz_side_by_side";
+                    //deviceDescriptor.MonocularHorizontal = 90f;
+                    //deviceDescriptor.MonocularVertical = 101.25f;
+                    //deviceDescriptor.OverlapPercent = 100f;
+                    //deviceDescriptor.PitchTilt = 0f;
+                    //deviceDescriptor.K1Red = 0f;
+                    //deviceDescriptor.K1Green = 0f;
+                    //deviceDescriptor.K1Blue = 0f;
+                    //deviceDescriptor.RightRoll = 0f;
+                    //deviceDescriptor.LeftRoll = 0f;
+                    //deviceDescriptor.CenterProjX = 0.5f;
+                    //deviceDescriptor.CenterProjY = 0.5f;
 
                     LeftEye = new VREye(orientationSignal, Eye.Left, deviceDescriptor);
                     RightEye = new VREye(orientationSignal, Eye.Right, deviceDescriptor);

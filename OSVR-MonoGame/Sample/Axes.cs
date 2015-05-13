@@ -27,9 +27,9 @@ namespace Sample
             basicEffect.Projection = projection;
             basicEffect.VertexColorEnabled = true;
 
-            vertices[0] = new VertexPositionColor(new Vector3(0f, 0f, size), color);
-            vertices[1] = new VertexPositionColor(new Vector3(size, 0f, 0f), color * 0.5f);
-            vertices[2] = new VertexPositionColor(new Vector3(-size, 0f, 0f), Color.Black);
+            vertices[0] = new VertexPositionColor(new Vector3(0f, 0f, -size), color);
+            vertices[1] = new VertexPositionColor(new Vector3(size * 0.25f, 0f, 0f), Color.Black);
+            vertices[2] = new VertexPositionColor(new Vector3(-size * 0.25f, 0f, 0f), Color.Black);
             
             vertexBuffer.SetData<VertexPositionColor>(vertices);
             graphicsDevice.SetVertexBuffer(vertexBuffer);

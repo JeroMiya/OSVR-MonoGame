@@ -22,7 +22,8 @@ namespace Sample
         // OSVR resources
         ClientKit clientKit;
         VRHead vrHead;
-        //IInterfaceSignal<PoseReport> leftHandPose;
+        IInterfaceSignal<PoseReport> leftHandPose;
+        //IInterfaceSignal<PoseReport> rightHandPose;
         IInterfaceSignal<Quaternion> rightHandOrientation;
         IInterfaceSignal<Quaternion> headOrientation;
         OrientationMode orientationMode = OrientationMode.Head;
@@ -31,7 +32,9 @@ namespace Sample
 
         // Game-related properties
         const float moveSpeed = 5f;
-        Vector3 position = Vector3.Zero;
+        Vector3 leftHandOffset = Vector3.Zero;
+        Vector3 rightHandOffset = Vector3.Zero;
+        Vector3 position = new Vector3(0, 5f, 0f);
         float rotationY = 0f;
         bool firstUpdate = true;
 
@@ -46,7 +49,8 @@ namespace Sample
         {
             clientKit = new ClientKit("");
 
-            //leftHandPose = new PoseSignal("/me/hands/left", clientKit);
+            leftHandPose = new PoseSignal("/me/hands/left", clientKit);
+            //rightHandPose = new PoseSignal("/me/hands/right", clientKit);
 
             // You should always be using "/me/head" for HMD orientation tracking,
             // but we're mocking HMD head tracking with either hand tracking (e.g. Hydra controllers)
@@ -71,7 +75,8 @@ namespace Sample
             blank = new Texture2D(GraphicsDevice, 1, 1);
             blank.SetData(new[] { Color.White });
 
-            //leftHandPose.Start();
+            leftHandPose.Start();
+            //rightHandPose.Start();
             headOrientation.Start();
             rightHandOrientation.Start();
 
@@ -82,7 +87,8 @@ namespace Sample
         {
             base.UnloadContent();
             
-            //leftHandPose.Stop();
+            leftHandPose.Stop();
+            //rightHandPose.Stop();
             rightHandOrientation.Stop();
             headOrientation.Stop();
 
@@ -131,6 +137,12 @@ namespace Sample
                     if(lastKeyboardState.IsKeyUp(Keys.O) && kbs.IsKeyDown(Keys.O))
                     {
                         CycleOrientationMode();
+                    }
+
+                    if(lastKeyboardState.IsKeyUp(Keys.C) && kbs.IsKeyDown(Keys.C))
+                    {
+                        leftHandOffset = Vector3.Negate(leftHandPose.Value.Position);
+                        //rightHandOffset = Vector3.Negate(rightHandPose.Value.Position);
                     }
                 }
                 lastKeyboardState = kbs;
@@ -195,6 +207,23 @@ namespace Sample
             base.Draw(gameTime);
         }
 
+        void DrawPose(IInterfaceSignal<PoseReport> poseSignal, Vector3 calibrationOffset, Matrix view, Matrix projection)
+        {
+            var yRotation = Quaternion.CreateFromYawPitchRoll(rotationY, 0, 0);
+            var rotation = yRotation * leftHandPose.Value.Rotation;
+            var leftHandWorld =
+                Matrix.CreateFromQuaternion(rotation)
+                * Matrix.CreateTranslation(position + Vector3.Transform(calibrationOffset + leftHandPose.Value.Position, yRotation));
+
+            axes.Draw(
+                size: .1f,
+                color: Color.Red,
+                view: view,
+                world: leftHandWorld,
+                projection: projection,
+                graphicsDevice: GraphicsDevice);
+        }
+
         public void DrawScene(GameTime gameTime, Viewport viewport, Matrix stereoTransform, Matrix view, Matrix projection)
         {
             // TODO: Draw something fancy. Or at the very least visible?
@@ -203,7 +232,7 @@ namespace Sample
             var cameraView = stereoTransform * translation * kbRotation * view;
 
             // Draw the model. A model can have multiple meshes, so loop.
-            var modelWorld = Matrix.CreateTranslation(0f, -5f, -5f);
+            var modelWorld = Matrix.CreateTranslation(0f, -0f, -0f);
             foreach (ModelMesh mesh in model.Meshes)
             {
                 // This is where the mesh orientation is set, as well 
@@ -218,6 +247,10 @@ namespace Sample
                 // Draw the mesh, using the effects set above.
                 mesh.Draw();
             }
+
+            DrawPose(leftHandPose, leftHandOffset, cameraView, projection);
+            //DrawPose(rightHandPose, rightHandOffset, cameraView, projection);
+
             var kbstate = Keyboard.GetState();
             if (kbstate.IsKeyDown(Keys.Q) || kbstate.IsKeyDown(Keys.E))
             {

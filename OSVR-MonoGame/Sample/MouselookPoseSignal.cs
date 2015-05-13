@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Sample
 {
-    public class MouselookOrientationSignal : IInterfaceSignal<Quaternion>
+    public class MouselookPoseSignal : IInterfaceSignal<PoseReport>
     {
         Viewport viewport;
         MouseState lastMouseState;
@@ -19,7 +19,7 @@ namespace Sample
         const float RotationSpeed = .5f;
         float rotationX = 0f;
         float rotationY = 0f;
-        public MouselookOrientationSignal(Viewport viewport)
+        public MouselookPoseSignal(Viewport viewport)
         {
             this.viewport = viewport;
         }
@@ -67,14 +67,14 @@ namespace Sample
         {
         }
 
-        public Quaternion Value
+        public PoseReport Value
         {
             get
             {
-                return value;
+                return new PoseReport { Rotation = value, Position = Vector3.Zero };
             }
         }
 
-        public event EventHandler<Quaternion> ValueChanged;
+        public event EventHandler<PoseReport> ValueChanged;
     }
 }

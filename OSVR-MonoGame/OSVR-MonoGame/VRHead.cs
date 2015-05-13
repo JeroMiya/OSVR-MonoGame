@@ -52,21 +52,22 @@ namespace OSVR
             readonly GraphicsDeviceManager graphicsDeviceManager;
             DeviceDescriptor deviceDescriptor;
             readonly ClientKit clientKit;
-            IInterfaceSignal<Quaternion> orientationSignal;
-            public IInterfaceSignal<Quaternion> OrientationSignal
+
+            IInterfaceSignal<PoseReport> poseSignal;
+            public IInterfaceSignal<PoseReport> PoseSignal
             {
-                get { return orientationSignal; }
+                get { return poseSignal; }
                 set 
                 { 
-                    orientationSignal = value;
-                    LeftEye.OrientationSignal = value;
-                    RightEye.OrientationSignal = value;
+                    poseSignal = value;
+                    LeftEye.PoseSignal = value;
+                    RightEye.PoseSignal = value;
                 }
             }
 
-            public VRHead(GraphicsDeviceManager graphicsDeviceManager, ClientKit clientKit, IInterfaceSignal<Quaternion> orientationSignal)
+            public VRHead(GraphicsDeviceManager graphicsDeviceManager, ClientKit clientKit, IInterfaceSignal<PoseReport> poseSignal)
             {
-                this.orientationSignal = orientationSignal;
+                this.poseSignal = poseSignal;
                 this.graphicsDeviceManager = graphicsDeviceManager;
                 this.clientKit = clientKit;
                 // TODO: Provide a way to pass in an explicit json value?
@@ -105,8 +106,8 @@ namespace OSVR
                     //deviceDescriptor.CenterProjX = 0.5f;
                     //deviceDescriptor.CenterProjY = 0.5f;
 
-                    LeftEye = new VREye(orientationSignal, Eye.Left, deviceDescriptor);
-                    RightEye = new VREye(orientationSignal, Eye.Right, deviceDescriptor);
+                    LeftEye = new VREye(poseSignal, Eye.Left, deviceDescriptor);
+                    RightEye = new VREye(poseSignal, Eye.Right, deviceDescriptor);
 
                     switch(deviceDescriptor.DisplayMode)
                     {

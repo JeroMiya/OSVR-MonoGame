@@ -23,17 +23,16 @@ namespace Sample
         ClientKit clientKit;
         VRHead vrHead;
         IInterfaceSignal<PoseReport> leftHandPose;
-        //IInterfaceSignal<PoseReport> rightHandPose;
-        IInterfaceSignal<Quaternion> rightHandOrientation;
-        IInterfaceSignal<Quaternion> headOrientation;
+        IInterfaceSignal<PoseReport> rightHandPose;
+        IInterfaceSignal<PoseReport> headPose;
         OrientationMode orientationMode = OrientationMode.Head;
-        MouselookOrientationSignal mouseOrientationSignal;
+        MouselookPoseSignal mouseOrientationSignal;
         //KeyboardOrientationSignal keyboardOrientationSignal;
 
         // Game-related properties
         const float moveSpeed = 5f;
-        Vector3 leftHandOffset = Vector3.Zero;
-        Vector3 rightHandOffset = Vector3.Zero;
+        Vector3 leftHandOffset = new Vector3(0, 0, -1);
+        Vector3 rightHandOffset = new Vector3(0, 0, -1);
         Vector3 position = new Vector3(0, 5f, 0f);
         float rotationY = 0f;
         bool firstUpdate = true;
@@ -50,18 +49,17 @@ namespace Sample
             clientKit = new ClientKit("");
 
             leftHandPose = new PoseSignal("/me/hands/left", clientKit);
-            //rightHandPose = new PoseSignal("/me/hands/right", clientKit);
+            rightHandPose = new PoseSignal("/me/hands/right", clientKit);
 
             // You should always be using "/me/head" for HMD orientation tracking,
             // but we're mocking HMD head tracking with either hand tracking (e.g. Hydra controllers)
             // or with mouselook. You can cycle through them with the O key.
-            headOrientation = new OrientationSignal("/me/head", clientKit);
-            rightHandOrientation = new OrientationSignal("/me/hands/right", clientKit);
+            headPose = new PoseSignal("/me/head", clientKit);
 
             // Mouselook emulation of the head-tracking orientation signal
-            mouseOrientationSignal = new MouselookOrientationSignal(GraphicsDevice.Viewport);
+            mouseOrientationSignal = new MouselookPoseSignal(GraphicsDevice.Viewport);
 
-            vrHead = new VRHead(graphics, clientKit, headOrientation);
+            vrHead = new VRHead(graphics, clientKit, headPose);
             base.Initialize();
         }
 
@@ -75,22 +73,20 @@ namespace Sample
             blank = new Texture2D(GraphicsDevice, 1, 1);
             blank.SetData(new[] { Color.White });
 
+            headPose.Start();
             leftHandPose.Start();
-            //rightHandPose.Start();
-            headOrientation.Start();
-            rightHandOrientation.Start();
-
+            rightHandPose.Start();
+            
             base.LoadContent();
         }
 
         protected override void UnloadContent()
         {
             base.UnloadContent();
-            
+
+            headPose.Stop();
             leftHandPose.Stop();
-            //rightHandPose.Stop();
-            rightHandOrientation.Stop();
-            headOrientation.Stop();
+            rightHandPose.Stop();
 
             clientKit.Dispose();
             clientKit = null;
@@ -102,15 +98,15 @@ namespace Sample
             {
                 case OrientationMode.Head:
                     orientationMode = OrientationMode.Mouselook;
-                    vrHead.OrientationSignal = mouseOrientationSignal;
+                    vrHead.PoseSignal = mouseOrientationSignal;
                     break;
                 case OrientationMode.Mouselook:
                     orientationMode = OrientationMode.RightHand;
-                    vrHead.OrientationSignal = rightHandOrientation;
+                    vrHead.PoseSignal = rightHandPose;
                     break;
                 case OrientationMode.RightHand:
                     orientationMode = OrientationMode.Head;
-                    vrHead.OrientationSignal = headOrientation;
+                    vrHead.PoseSignal = headPose;
                     break;
                 default:
                     throw new InvalidOperationException("Unknown orientation mode.");
@@ -142,7 +138,7 @@ namespace Sample
                     if(lastKeyboardState.IsKeyUp(Keys.C) && kbs.IsKeyDown(Keys.C))
                     {
                         leftHandOffset = Vector3.Negate(leftHandPose.Value.Position);
-                        //rightHandOffset = Vector3.Negate(rightHandPose.Value.Position);
+                        rightHandOffset = Vector3.Negate(rightHandPose.Value.Position);
                     }
                 }
                 lastKeyboardState = kbs;
@@ -179,7 +175,7 @@ namespace Sample
                 }
 
                 var kbRotation = Quaternion.CreateFromYawPitchRoll(rotationY, 0f, 0f);
-                var transformedMovement = Vector3.Transform(movement, kbRotation * vrHead.OrientationSignal.Value);
+                var transformedMovement = Vector3.Transform(movement, kbRotation * vrHead.PoseSignal.Value.Rotation);
                 position = position + transformedMovement;
 
                 // increase/decrease stereo amount
@@ -207,17 +203,17 @@ namespace Sample
             base.Draw(gameTime);
         }
 
-        void DrawPose(IInterfaceSignal<PoseReport> poseSignal, Vector3 calibrationOffset, Matrix view, Matrix projection)
+        void DrawPose(Color color, IInterfaceSignal<PoseReport> poseSignal, Vector3 calibrationOffset, Matrix view, Matrix projection)
         {
             var yRotation = Quaternion.CreateFromYawPitchRoll(rotationY, 0, 0);
-            var rotation = yRotation * leftHandPose.Value.Rotation;
+            var rotation = yRotation * poseSignal.Value.Rotation;
             var leftHandWorld =
                 Matrix.CreateFromQuaternion(rotation)
-                * Matrix.CreateTranslation(position + Vector3.Transform(calibrationOffset + leftHandPose.Value.Position, yRotation));
+                * Matrix.CreateTranslation(position + Vector3.Transform(calibrationOffset + poseSignal.Value.Position, yRotation));
 
             axes.Draw(
                 size: .1f,
-                color: Color.Red,
+                color: color,
                 view: view,
                 world: leftHandWorld,
                 projection: projection,
@@ -248,8 +244,8 @@ namespace Sample
                 mesh.Draw();
             }
 
-            DrawPose(leftHandPose, leftHandOffset, cameraView, projection);
-            //DrawPose(rightHandPose, rightHandOffset, cameraView, projection);
+            DrawPose(Color.Red, leftHandPose, leftHandOffset, cameraView, projection);
+            DrawPose(Color.Blue, rightHandPose, rightHandOffset, cameraView, projection);
 
             var kbstate = Keyboard.GetState();
             if (kbstate.IsKeyDown(Keys.Q) || kbstate.IsKeyDown(Keys.E))

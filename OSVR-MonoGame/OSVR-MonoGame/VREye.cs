@@ -24,11 +24,11 @@ namespace OSVR
 
         public class VREye
         {
-            private IInterfaceSignal<Quaternion> orientationSignal;
-            public IInterfaceSignal<Quaternion> OrientationSignal 
+            private IInterfaceSignal<PoseReport> poseSignal;
+            public IInterfaceSignal<PoseReport> PoseSignal 
             { 
-                get { return orientationSignal; } 
-                set { orientationSignal = value; } 
+                get { return poseSignal; } 
+                set { poseSignal = value; } 
             }
 
             private readonly DeviceDescriptor deviceDescriptor;
@@ -56,7 +56,7 @@ namespace OSVR
                 get
                 {
                     // orientation matrix
-                    var orientationRotation = Matrix.CreateFromQuaternion(this.orientationSignal.Value);
+                    var orientationRotation = Matrix.CreateFromQuaternion(this.poseSignal.Value.Rotation);
                     var target = Vector3.Transform(Vector3.Forward, orientationRotation);
                     var upPoint = Vector3.Transform(Vector3.Up, orientationRotation);
                     var viewMatrix = Matrix.CreateLookAt(Vector3.Zero, target, upPoint);
@@ -133,9 +133,9 @@ namespace OSVR
                 }
             }
 
-            public VREye(IInterfaceSignal<Quaternion> orientationSignal, Eye eye, DeviceDescriptor deviceDescriptor)
+            public VREye(IInterfaceSignal<PoseReport> poseSignal, Eye eye, DeviceDescriptor deviceDescriptor)
             {
-                this.orientationSignal = orientationSignal;
+                this.poseSignal = poseSignal;
                 this.Eye = eye;
                 this.deviceDescriptor = deviceDescriptor;
             }

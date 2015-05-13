@@ -57,7 +57,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Axes.cs" />
-    <Compile Include="MouselookOrientationSignal.cs" />
+    <Compile Include="MouselookPoseSignal.cs" />
     <Compile Include="SampleGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

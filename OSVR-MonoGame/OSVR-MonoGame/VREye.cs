@@ -56,10 +56,9 @@ namespace OSVR
                 get
                 {
                     // orientation matrix
-                    var orientationRotation = Matrix.CreateFromQuaternion(this.poseSignal.Value.Rotation);
-                    var target = Vector3.Transform(Vector3.Forward, orientationRotation);
-                    var upPoint = Vector3.Transform(Vector3.Up, orientationRotation);
-                    var viewMatrix = Matrix.CreateLookAt(Vector3.Zero, target, upPoint);
+                    var translation = Matrix.CreateTranslation(Vector3.Negate(this.poseSignal.Value.Position));
+                    var rotation = Matrix.CreateFromQuaternion(Quaternion.Inverse(this.poseSignal.Value.Rotation));
+                    var viewMatrix = rotation * translation;
 
                     // eye device rotation
                     var pitch = EyeRotationY;

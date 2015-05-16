@@ -184,7 +184,10 @@ namespace Sample
 
                 vrHead.Update();
                 //keyboardOrientationSignal.Update(gameTime);
-                mouseOrientationSignal.Update(gameTime);
+                if (orientationMode == OrientationMode.Mouselook)
+                {
+                    mouseOrientationSignal.Update(gameTime);
+                }
 
                 // clientKit.Update must be called frequently
                 // perhaps more frequently than Update is called?

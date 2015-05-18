@@ -41,6 +41,7 @@ namespace Sample
             : base()
         {
             graphics = new GraphicsDeviceManager(this);
+            graphics.GraphicsProfile = GraphicsProfile.HiDef;
             Content.RootDirectory = "Content";
         }
 
@@ -139,6 +140,12 @@ namespace Sample
                     {
                         leftHandOffset = Vector3.Negate(leftHandPose.Value.Position);
                         rightHandOffset = Vector3.Negate(rightHandPose.Value.Position);
+                    }
+
+                    if(lastKeyboardState.IsKeyUp(Keys.F) && kbs.IsKeyDown(Keys.F))
+                    {
+                        graphics.IsFullScreen = !graphics.IsFullScreen;
+                        graphics.ApplyChanges();
                     }
                 }
                 lastKeyboardState = kbs;

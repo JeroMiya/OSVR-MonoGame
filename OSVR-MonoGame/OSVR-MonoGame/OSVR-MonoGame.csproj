@@ -60,6 +60,7 @@
     <Compile Include="InterfaceCallbacks.cs" />
     <Compile Include="Math.cs" />
     <Compile Include="OrientationSignal.cs" />
+    <Compile Include="OrientationToPoseInterfaceSignal.cs" />
     <Compile Include="PoseSignal.cs" />
     <Compile Include="PositionSignal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

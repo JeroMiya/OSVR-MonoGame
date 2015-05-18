@@ -170,7 +170,10 @@ namespace OSVR
                 graphicsDeviceManager.PreferredBackBufferHeight = height;
                 renderTargetLeft = MakeRenderTarget2D(width, height);
                 renderTargetRight = MakeRenderTarget2D(width, height);
-                graphicsDeviceManager.IsFullScreen = true;
+                if (!Debugger.IsAttached)
+                {
+                    graphicsDeviceManager.IsFullScreen = true;
+                }
                 graphicsDeviceManager.ApplyChanges();
             }
 

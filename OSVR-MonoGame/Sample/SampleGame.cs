@@ -255,7 +255,10 @@ namespace Sample
             }
 
             DrawPose(Color.Red, leftHandPose, leftHandOffset, cameraView, projection);
-            DrawPose(Color.Blue, rightHandPose, rightHandOffset, cameraView, projection);
+            if (orientationMode != OrientationMode.RightHand)
+            {
+                DrawPose(Color.Blue, rightHandPose, rightHandOffset, cameraView, projection);
+            }
 
             var kbstate = Keyboard.GetState();
             if (kbstate.IsKeyDown(Keys.Q) || kbstate.IsKeyDown(Keys.E))

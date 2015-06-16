@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\OSVR.ClientKit.0.1.1-alpha\build\OSVR.ClientKit.props" Condition="Exists('..\packages\OSVR.ClientKit.0.1.1-alpha\build\OSVR.ClientKit.props')" />
+  <Import Project="..\packages\OSVR.ClientKit.0.1.2-alpha\build\OSVR.ClientKit.props" Condition="Exists('..\packages\OSVR.ClientKit.0.1.2-alpha\build\OSVR.ClientKit.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -8,11 +8,11 @@
     <ProjectGuid>{B2ECECC5-72EE-4965-937B-338622B587D2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OSVR_MonoGame</RootNamespace>
+    <RootNamespace>OSVR.MonoGame</RootNamespace>
     <AssemblyName>OSVR-MonoGame</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>a8dc4b36</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>b24c2678</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -40,9 +40,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OSVR.ClientKit, Version=0.1.5591.1287, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\OSVR.ClientKit.0.1.1-alpha\lib\net45\OSVR.ClientKit.dll</HintPath>
+    <Reference Include="OSVR.ClientKit, Version=0.1.5643.41643, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OSVR.ClientKit.0.1.2-alpha\lib\net45\OSVR.ClientKit.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,17 +53,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientKit.cs" />
     <Compile Include="DeviceDescriptor.cs" />
     <Compile Include="DLLSearchPathFixer.cs" />
-    <Compile Include="InterfaceSignalBase.cs" />
-    <Compile Include="InterfaceCallbacks.cs" />
     <Compile Include="Math.cs" />
-    <Compile Include="OrientationSignal.cs" />
-    <Compile Include="OrientationToPoseInterfaceSignal.cs" />
-    <Compile Include="PoseSignal.cs" />
-    <Compile Include="PositionSignal.cs" />
+    <Compile Include="XnaOrientationInterface.cs" />
+    <Compile Include="XnaPoseInterface.cs" />
+    <Compile Include="XnaPositionInterface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReportTypes.cs" />
     <Compile Include="VREye.cs" />
     <Compile Include="VRHead.cs" />
   </ItemGroup>
@@ -77,7 +74,7 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\OSVR.ClientKit.0.1.1-alpha\build\OSVR.ClientKit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OSVR.ClientKit.0.1.1-alpha\build\OSVR.ClientKit.props'))" />
+    <Error Condition="!Exists('..\packages\OSVR.ClientKit.0.1.2-alpha\build\OSVR.ClientKit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OSVR.ClientKit.0.1.2-alpha\build\OSVR.ClientKit.props'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

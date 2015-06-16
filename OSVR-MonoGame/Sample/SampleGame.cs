@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using OSVR.ClientKit;
 using OSVR.MonoGame;
-using OSVR_MonoGame;
 using System;
 
 namespace Sample
@@ -20,14 +20,13 @@ namespace Sample
         KeyboardState lastKeyboardState;
 
         // OSVR resources
-        ClientKit clientKit;
+        ClientContext context;
         VRHead vrHead;
-        IInterfaceSignal<PoseReport> leftHandPose;
-        IInterfaceSignal<PoseReport> rightHandPose;
-        IInterfaceSignal<PoseReport> headPose;
+        OSVR.ClientKit.IInterface<XnaPose> leftHandPose;
+        OSVR.ClientKit.IInterface<XnaPose> rightHandPose;
+        OSVR.ClientKit.IInterface<XnaPose> headPose;
         OrientationMode orientationMode = OrientationMode.Head;
-        MouselookPoseSignal mouseOrientationSignal;
-        //KeyboardOrientationSignal keyboardOrientationSignal;
+        MouselookInterface mouselook;
 
         // Game-related properties
         const float moveSpeed = 5f;
@@ -47,20 +46,20 @@ namespace Sample
 
         protected override void Initialize()
         {
-            clientKit = new ClientKit("");
+            context = new ClientContext("osvr.monogame.Sample");
 
-            leftHandPose = new PoseSignal("/me/hands/left", clientKit);
-            rightHandPose = new PoseSignal("/me/hands/right", clientKit);
+            leftHandPose = new XnaPoseInterface(context.GetPoseInterface("/me/hands/left"));
+            rightHandPose = new XnaPoseInterface(context.GetPoseInterface("/me/hands/right"));
 
             // You should always be using "/me/head" for HMD orientation tracking,
             // but we're mocking HMD head tracking with either hand tracking (e.g. Hydra controllers)
             // or with mouselook. You can cycle through them with the O key.
-            headPose = new PoseSignal("/me/head", clientKit);
+            headPose = new XnaPoseInterface(context.GetPoseInterface("/me/head"));
 
-            // Mouselook emulation of the head-tracking orientation signal
-            mouseOrientationSignal = new MouselookPoseSignal(GraphicsDevice.Viewport);
+            // Mouselook emulation of the head-tracking orientation interface
+            mouselook = new MouselookInterface(GraphicsDevice.Viewport);
 
-            vrHead = new VRHead(graphics, clientKit, headPose);
+            vrHead = new VRHead(graphics, context, headPose);
             base.Initialize();
         }
 
@@ -73,10 +72,6 @@ namespace Sample
             spriteBatch = new SpriteBatch(GraphicsDevice);
             blank = new Texture2D(GraphicsDevice, 1, 1);
             blank.SetData(new[] { Color.White });
-
-            headPose.Start();
-            leftHandPose.Start();
-            rightHandPose.Start();
             
             base.LoadContent();
         }
@@ -84,13 +79,14 @@ namespace Sample
         protected override void UnloadContent()
         {
             base.UnloadContent();
-
-            headPose.Stop();
-            leftHandPose.Stop();
-            rightHandPose.Stop();
-
-            clientKit.Dispose();
-            clientKit = null;
+            this.leftHandPose.Dispose();
+            this.rightHandPose.Dispose();
+            this.headPose.Dispose();
+            context.Dispose();
+            leftHandPose = null;
+            rightHandPose = null;
+            headPose = null;
+            context = null;
         }
 
         private void CycleOrientationMode()
@@ -99,15 +95,15 @@ namespace Sample
             {
                 case OrientationMode.Head:
                     orientationMode = OrientationMode.Mouselook;
-                    vrHead.PoseSignal = mouseOrientationSignal;
+                    vrHead.Pose = mouselook;
                     break;
                 case OrientationMode.Mouselook:
                     orientationMode = OrientationMode.RightHand;
-                    vrHead.PoseSignal = rightHandPose;
+                    vrHead.Pose = rightHandPose;
                     break;
                 case OrientationMode.RightHand:
                     orientationMode = OrientationMode.Head;
-                    vrHead.PoseSignal = headPose;
+                    vrHead.Pose = headPose;
                     break;
                 default:
                     throw new InvalidOperationException("Unknown orientation mode.");
@@ -138,8 +134,8 @@ namespace Sample
 
                     if(lastKeyboardState.IsKeyUp(Keys.C) && kbs.IsKeyDown(Keys.C))
                     {
-                        leftHandOffset = Vector3.Negate(leftHandPose.Value.Position);
-                        rightHandOffset = Vector3.Negate(rightHandPose.Value.Position);
+                        leftHandOffset = Vector3.Negate(leftHandPose.GetState().Value.Position);
+                        rightHandOffset = Vector3.Negate(rightHandPose.GetState().Value.Position);
                     }
 
                     if(lastKeyboardState.IsKeyUp(Keys.F) && kbs.IsKeyDown(Keys.F))
@@ -181,8 +177,8 @@ namespace Sample
                     rotationY -= moveSpeed * t;
                 }
 
-                var kbRotation = Quaternion.CreateFromYawPitchRoll(rotationY, 0f, 0f);
-                var transformedMovement = Vector3.Transform(movement, kbRotation * vrHead.PoseSignal.Value.Rotation);
+                var kbRotation = Microsoft.Xna.Framework.Quaternion.CreateFromYawPitchRoll(rotationY, 0f, 0f);
+                var transformedMovement = Vector3.Transform(movement, kbRotation * vrHead.Pose.GetState().Value.Rotation);
                 position = position + transformedMovement;
 
                 // increase/decrease stereo amount
@@ -190,15 +186,14 @@ namespace Sample
                 if (kbs.IsKeyDown(Keys.E)) { vrHead.IPDInMeters -= .01f * t; }
 
                 vrHead.Update();
-                //keyboardOrientationSignal.Update(gameTime);
                 if (orientationMode == OrientationMode.Mouselook)
                 {
-                    mouseOrientationSignal.Update(gameTime);
+                    mouselook.Update(gameTime);
                 }
 
-                // clientKit.Update must be called frequently
+                // context.Update must be called frequently
                 // perhaps more frequently than Update is called?
-                clientKit.Update(gameTime);
+                context.update();
             }
             base.Update(gameTime);
         }
@@ -213,13 +208,14 @@ namespace Sample
             base.Draw(gameTime);
         }
 
-        void DrawPose(Color color, IInterfaceSignal<PoseReport> poseSignal, Vector3 calibrationOffset, Matrix view, Matrix projection)
+        void DrawPose(Color color, OSVR.ClientKit.IInterface<XnaPose> pose, Vector3 calibrationOffset, Matrix view, Matrix projection)
         {
-            var yRotation = Quaternion.CreateFromYawPitchRoll(rotationY, 0, 0);
-            var rotation = yRotation * poseSignal.Value.Rotation;
+            var poseState = pose.GetState();
+            var yRotation = Microsoft.Xna.Framework.Quaternion.CreateFromYawPitchRoll(rotationY, 0, 0);
+            var rotation = yRotation * poseState.Value.Rotation;
             var leftHandWorld =
                 Matrix.CreateFromQuaternion(rotation)
-                * Matrix.CreateTranslation(position + Vector3.Transform(calibrationOffset + poseSignal.Value.Position, yRotation));
+                * Matrix.CreateTranslation(position + Vector3.Transform(calibrationOffset + poseState.Value.Position, yRotation));
 
             axes.Draw(
                 size: .1f,

@@ -51,25 +51,27 @@ namespace OSVR
 
             readonly GraphicsDeviceManager graphicsDeviceManager;
             DeviceDescriptor deviceDescriptor;
-            readonly ClientKit clientKit;
+            readonly OSVR.ClientKit.ClientContext context;
 
-            IInterfaceSignal<PoseReport> poseSignal;
-            public IInterfaceSignal<PoseReport> PoseSignal
+            OSVR.ClientKit.IInterface<XnaPose> pose;
+            public OSVR.ClientKit.IInterface<XnaPose> Pose
             {
-                get { return poseSignal; }
+                get { return pose; }
                 set 
                 { 
-                    poseSignal = value;
-                    LeftEye.PoseSignal = value;
-                    RightEye.PoseSignal = value;
+                    pose = value;
+                    LeftEye.Pose = value;
+                    RightEye.Pose = value;
                 }
             }
 
-            public VRHead(GraphicsDeviceManager graphicsDeviceManager, ClientKit clientKit, IInterfaceSignal<PoseReport> poseSignal)
+            public VRHead(GraphicsDeviceManager graphicsDeviceManager,
+                OSVR.ClientKit.ClientContext context,
+                OSVR.ClientKit.IInterface<XnaPose> pose)
             {
-                this.poseSignal = poseSignal;
+                this.pose = pose;
                 this.graphicsDeviceManager = graphicsDeviceManager;
-                this.clientKit = clientKit;
+                this.context = context;
                 // TODO: Provide a way to pass in an explicit json value?
                 GetDeviceDescription();
             }
@@ -87,7 +89,7 @@ namespace OSVR
 
             private void GetDeviceDescription()
             {
-                var displayJson = clientKit.Context.getStringParameter("/display");
+                var displayJson = context.getStringParameter("/display");
                 deviceDescriptor = DeviceDescriptor.Parse(displayJson);
                 if(deviceDescriptor != null)
                 {
@@ -106,8 +108,8 @@ namespace OSVR
                     //deviceDescriptor.CenterProjX = 0.5f;
                     //deviceDescriptor.CenterProjY = 0.5f;
 
-                    LeftEye = new VREye(poseSignal, Eye.Left, deviceDescriptor);
-                    RightEye = new VREye(poseSignal, Eye.Right, deviceDescriptor);
+                    LeftEye = new VREye(pose, Eye.Left, deviceDescriptor);
+                    RightEye = new VREye(pose, Eye.Right, deviceDescriptor);
 
                     switch(deviceDescriptor.DisplayMode)
                     {

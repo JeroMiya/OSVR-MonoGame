@@ -28,11 +28,20 @@ namespace OSVR
 				return new Quaternion((float)quat.x, (float)quat.y, (float)quat.z, (float)quat.w);
             }
 
-            public static Matrix ConvertPose(OSVR.ClientKit.Pose3 pose)
+            public static Matrix ConvertPoseToMatrix(XnaPose pose)
             {
-				var ret = Matrix.CreateFromQuaternion(Math.ConvertOrientation(pose.rotation));
-				ret.Translation = Math.ConvertPosition(pose.translation); // This saves one matrix multiply
-				return ret;
+                var ret = Matrix.CreateFromQuaternion(pose.Rotation);
+                ret.Translation = pose.Position; // This saves one matrix multiply
+                return ret;
+            }
+
+            public static XnaPose ConvertPose(OSVR.ClientKit.Pose3 pose)
+            {
+                return new XnaPose
+                {
+                    Position = Math.ConvertPosition(pose.translation),
+                    Rotation = Math.ConvertOrientation(pose.rotation),
+                };
             }
         }
     }

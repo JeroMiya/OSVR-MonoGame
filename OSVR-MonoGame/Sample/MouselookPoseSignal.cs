@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Sample
 {
-    public class MouselookPoseSignal : IInterfaceSignal<PoseReport>
+    public class MouselookInterface : OSVR.ClientKit.IInterface<XnaPose>
     {
         Viewport viewport;
         MouseState lastMouseState;
@@ -19,7 +19,8 @@ namespace Sample
         const float RotationSpeed = .5f;
         float rotationX = 0f;
         float rotationY = 0f;
-        public MouselookPoseSignal(Viewport viewport)
+
+        public MouselookInterface(Viewport viewport)
         {
             this.viewport = viewport;
         }
@@ -54,27 +55,24 @@ namespace Sample
             value = Quaternion.CreateFromYawPitchRoll(rotationY, rotationX, 0f);
         }
 
-        public InterfaceCallbacks Interface
+        public OSVR.ClientKit.InterfaceState<XnaPose> GetState()
         {
-            get { throw new NotImplementedException(); }
-        }
-
-        public void Start()
-        {
-        }
-
-        public void Stop()
-        {
-        }
-
-        public PoseReport Value
-        {
-            get
+            var pose = new XnaPose { Rotation = value, Position = Vector3.Zero };
+            return new OSVR.ClientKit.InterfaceState<XnaPose>
             {
-                return new PoseReport { Rotation = value, Position = Vector3.Zero };
-            }
+                Timestamp = new OSVR.ClientKit.TimeValue(),
+                Value = pose,
+            };
         }
 
-        public event EventHandler<PoseReport> ValueChanged;
+        event OSVR.ClientKit.StateChangedHandler<XnaPose> OSVR.ClientKit.IInterface<XnaPose>.StateChanged
+        {
+            add { throw new NotImplementedException(); }
+            remove { throw new NotImplementedException(); }
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }

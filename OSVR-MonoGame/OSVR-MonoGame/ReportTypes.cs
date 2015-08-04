@@ -16,4 +16,12 @@ namespace OSVR.MonoGame
         public Vector3 Position { get; set; }
         public Quaternion Rotation { get; set; }
     }
+
+    public struct XnaEyeTracker3DState
+    {
+        public bool BasePositionValid { get; set; }
+        public Vector3 BasePosition { get; set; }
+        public bool DirectionValid { get; set; }
+        public Vector3 Direction { get; set; }
+    }
 }

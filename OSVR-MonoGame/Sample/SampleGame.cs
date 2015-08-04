@@ -25,6 +25,7 @@ namespace Sample
         OSVR.ClientKit.IInterface<XnaPose> leftHandPose;
         OSVR.ClientKit.IInterface<XnaPose> rightHandPose;
         OSVR.ClientKit.IInterface<XnaPose> headPose;
+        OSVR.ClientKit.IInterface<Vector2> leftEye2D;
         OrientationMode orientationMode = OrientationMode.Head;
         MouselookInterface mouselook;
 
@@ -50,6 +51,7 @@ namespace Sample
 
             leftHandPose = new XnaPoseInterface(context.GetPoseInterface("/me/hands/left"));
             rightHandPose = new XnaPoseInterface(context.GetPoseInterface("/me/hands/right"));
+            leftEye2D = new XnaPosition2DInterface(context.GetEyeTracker2DInterface("/me/eyes/left"));
 
             // You should always be using "/me/head" for HMD orientation tracking,
             // but we're mocking HMD head tracking with either hand tracking (e.g. Hydra controllers)
@@ -259,9 +261,21 @@ namespace Sample
             var kbstate = Keyboard.GetState();
             if (kbstate.IsKeyDown(Keys.Q) || kbstate.IsKeyDown(Keys.E))
             {
+                // display IPD
                 spriteBatch.Begin();
                 spriteBatch.DrawString(diagnosticFont, "IPD: " + (vrHead.IPDInMeters * 1000).ToString() + "mm",
                     new Vector2((float)viewport.Width / 2f, (float)viewport.Height / 2f), Color.White);
+
+                // display eye tracking 2D location
+                var halfXSize = diagnosticFont.MeasureString("X") * .5f;
+                var eyeState = leftEye2D.GetState();
+                var scaledEyePosition = new Vector2(
+                    (eyeState.Value.X * (float)viewport.Width) - halfXSize.X,
+                    (eyeState.Value.Y * (float)viewport.Height) - halfXSize.Y);
+
+                spriteBatch.DrawString(diagnosticFont, "X",
+                    scaledEyePosition, Color.Red);
+
                 spriteBatch.End();
             }
         }
